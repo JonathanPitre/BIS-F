@@ -1,4 +1,4 @@
-﻿[CmdletBinding(SupportsShouldProcess = $true)]
+[CmdletBinding(SupportsShouldProcess = $true)]
 param(
 )
 <#
@@ -79,12 +79,13 @@ Begin {
 	$RearmREG_name5 = "LIC_BISF_RearmOF_user"
 	$RearmREG_name6 = "LIC_BISF_RearmOF_date"
 
-	$OfficeProducts = @("Microsoft Office Professional Plus","Microsoft Office Standard","Click-to-Run Licensing Component")
+	$OfficeProducts = @("Microsoft Office*Professional Plus","Microsoft Office*Standard","Click-to-Run Licensing Component")
 	[array]$OfficeInstallRoot = $null
 	[array]$OSPPREARMInstallRoot = $null
 	$OSPPREARM = $null
 	ForEach ($OfficeProduct in $OfficeProducts) {
         $Office = (Get-BISFSoftwareInfo -Publisher "Microsoft" -Name "$OfficeProduct")[-1] | select DisplayVersion,DisplayName
+        $Office2019OrNewer = $false
 		IF ($null -ne $Office) {
 			$OFName = $Office.DisplayName
 		    $OFVersion = $Office.DisplayVersion						#Version : 16.0.4266.1001
@@ -93,7 +94,18 @@ Begin {
 			Write-BISFLog -Msg "$OFName - $OFVersion installed" -ShowConsole -Color Cyan
 			IF ($O365 -eq $false) {
 				If ([Environment]::Is64BitOperatingSystem) {
-					$OfficeInstallRoot += (Get-ItemProperty -Path Registry::HKLM\SOFTWARE\Wow6432Node\Microsoft\Office\$($OFVersionShort)\Common\InstallRoot -Name Path -ErrorAction SilentlyContinue).Path
+                    $OfficeRegPath = "Registry::HKLM\SOFTWARE\Wow6432Node\Microsoft\Office\$($OFVersionShort)\Common\InstallRoot"
+                    Try {
+                        $OfficeInstallRootObject = (Get-ItemProperty -Path $OfficeRegPath -Name Path -ErrorAction 'Stop').Path
+                    }
+                    Catch {
+                        $OfficeRegPath = "Registry::HKLM\SOFTWARE\Wow6432Node\Microsoft\Office\$($OFVersionShort)\Word\InstallRoot"
+                        $OfficeInstallRootObject = (Get-ItemProperty -Path $OfficeRegPath -Name Path -ErrorAction 'SilentlyContinue').Path
+                        $Office2019OrNewer = $true
+
+                    }
+					$OfficeInstallRoot += $OfficeInstallRootObject
+                    
 				}
 				If ($OfficeInstallRoot -isnot [system.object]) { $OfficeInstallRoot += (Get-ItemProperty -Path Registry::HKLM\SOFTWARE\Microsoft\Office\$($OFVersionShort)\Common\InstallRoot -Name Path -ErrorAction SilentlyContinue).Path }
 			} ELSE {
@@ -104,6 +116,10 @@ Begin {
 			}
 			Write-BISFLog -Msg "Installpath $OfficeInstallRoot " -ShowConsole -Color DarkCyan -SubMsg
 			$OSPPREARM = Get-ChildItem -Path $OfficeInstallRoot -filter "OSPPREARM.EXE" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+            if ($Office2019OrNewer) {
+                $OfficeInstallRoot = ($OfficeInstallRoot.Split('\') | Where-Object { $_ -ne 'root'}) -join('\')
+                $OSPPREARM = Get-ChildItem -Path $OfficeInstallRoot -filter "OSPPREARM.EXE" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+            }
 			$OSPP = Get-ChildItem -Path $OfficeInstallRoot -filter "OSPP.vbs" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 			IF ($null -eq $OSPPREARM) {
 				Write-BISFLog -Msg "OSPPrearm can't be detected in $OfficeInstallRoot, fallback to get the data from the registry" -ShowConsole -Color DarkCyan -SubMsg
@@ -120,6 +136,9 @@ Begin {
 		} ELSE {
 			Write-BISFLog "$OfficeProduct is NOT installed"
 		}
+        if ($Office2019OrNewer) {
+            break
+        }
 	}
 
 	####################################################################
