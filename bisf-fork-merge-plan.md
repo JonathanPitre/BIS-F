@@ -51,11 +51,15 @@ flowchart LR
 | Source | Commit / PR | Files touched | Overlap with prior merges | Action | Status |
 | --- | --- | --- | --- | --- | --- |
 | Siebrandf | DisMode→DiskMode | `00_PersBISF_WriteCacheDisk.ps1` | Already HF 177 on develop | skip | done |
-| Pascal PDQ | 5 commits on develop | `BISF.psm1`, RDS grace, WriteCache, PRE/BUILD | Core prep scripts | cherry-pick | pending |
-| DennisHirsch26 | Office paths | Office detection | Low | cherry-pick | pending |
-| 5fe4abd | `-norestart` | `52_PrepBISF_VMWareTCPIPOptimizations.ps1` | File diverged | manual port | pending |
+| Pascal PDQ | 5 commits (+ EUCweb #366) | `BISF.psm1`, RDS grace, WriteCache, PRE/BUILD | Core prep scripts | cherry-pick | done |
+| DennisHirsch26 | Office paths (+ EUCweb #393) | `96_PrepBISF_Rearm.ps1` | Low | cherry-pick | done |
+| 5fe4abd | `-NoRestart` | `52_PrepBISF_VMWareTCPIPOptimizations.ps1` | File diverged | manual port | done |
+| EUCweb #364 | MpCmdRun process ID | `10_PrepBISF_AV-WinDefend.ps1` | Low | cherry-pick | done |
+| EUCweb #379 | SEP client recognition | Prep/Pers SEP scripts | Agent sealing | cherry-pick | done |
+| EUCweb #363 | Multithreaded PVS hydrate | Wrong path (repo root); existing HydratePVS differs | High risk | defer | deferred |
 | Deyda | develop tip | README / merges | Noise | defer | deferred |
-| micswe | selected hunks | WEM / EventLog / McAfee (review) | Noisy history | selective | pending |
+| micswe | Clear EventLog → Get-WinEvent | `97_PrepBISF_PRE_BaseImage.ps1` | Selective only | manual port | done |
+| micswe | WEM cache / McAfee / uploads | Full-file rewrites / BOM / binary Custom | Noisy | defer | deferred |
 | Agents | new scripts | `10_PrepBISF_*` | New files | add | pending |
 
 ## Phase 1 — Inventory and remotes

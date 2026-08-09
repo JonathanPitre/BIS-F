@@ -120,6 +120,8 @@ param(
 		16.08.2020 MS: HF 278 - Citrix AppLayering Finalize - Change NGEN Option
 		22.11.2020 MS: HF 288 - ngen executes extremely long -> ADMX Update to specify .NET Settings
 		22.11.2020 MS: HF 285 - Azure Active Directory (AAD) support to leave AAD during preparation
+		15.03.2022 MICSWE: Clear EventLog modified, to use Get-WinEvent
+		08.08.2026 JP: Port micswe Get-WinEvent Clear-EventLog (selective; skip whole-branch merge)
 
 	.LINK
 		https://eucweb.com
@@ -986,9 +988,21 @@ Begin {
 	}
 
 	function Clear-EventLog {
-		wevtutil.exe el | ForEach-Object {
-			Write-BISFLog -Msg  "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -Submsg
-			wevtutil.exe cl "$_"
+		# Prefer EventLogSession/Get-WinEvent (micswe); fall back to wevtutil if unavailable
+		try {
+			$eventLog = New-Object -TypeName System.Diagnostics.Eventing.Reader.EventLogSession
+			$logs = Get-WinEvent -ListLog * | ForEach-Object { $_.LogName }
+			$logs | ForEach-Object {
+				Write-BISFLog -Msg "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -Submsg
+				$eventLog.ClearLog($_)
+			}
+		}
+		catch {
+			Write-BISFLog -Msg "Get-WinEvent clear failed ($($_.Exception.Message)); falling back to wevtutil" -Type W
+			wevtutil.exe el | ForEach-Object {
+				Write-BISFLog -Msg "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -Submsg
+				wevtutil.exe cl "$_"
+			}
 		}
 	}
 
