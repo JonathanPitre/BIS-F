@@ -31,6 +31,7 @@
 	  02.01.2020 MS: HF 168 - VMware Optimizations 52_PrepBISF_VMWareTCPIPOptimization not executed
 	  05.01.2020 MS: HF 171 - VMware TCPIP Optimizations failed
 	  23.05.2020 MS: HF 236 - No MSFT_NetAdapterRssSettingData objects found
+	  08.08.2026 JP: Port 5fe4abd - Add -NoRestart to Set-NetAdapterRSS to avoid reboot prompt/hang on VMware
 
 	  .Link
     #>
@@ -400,10 +401,12 @@ Process {
 					$maxProcessorNumber = ($CPUCount - 1)
 				}
 				if ($NumaPresent) {
-					$netAdapter | Set-NetAdapterRSS -Enabled $true -BaseProcessorGroup $NICCount -BaseProcessorNumber $baseProcessorNumber -MaxProcessors $MaxProc -MaxProcessorNumber $maxProcessorNumber -profile $profile
+					Write-BISFLog -Msg "Running Set-NetAdapterRSS with -NoRestart (NUMA profile $profile)"
+					$netAdapter | Set-NetAdapterRSS -Enabled $true -BaseProcessorGroup $NICCount -BaseProcessorNumber $baseProcessorNumber -MaxProcessors $MaxProc -MaxProcessorNumber $maxProcessorNumber -profile $profile -NoRestart
 				}
 				else {
-					$netAdapter | Set-NetAdapterRSS -Enabled $true -BaseProcessorNumber $baseProcessorNumber -MaxProcessors $MaxProc -MaxProcessorNumber $maxProcessorNumber -profile $profile
+					Write-BISFLog -Msg "Running Set-NetAdapterRSS with -NoRestart (profile $profile)"
+					$netAdapter | Set-NetAdapterRSS -Enabled $true -BaseProcessorNumber $baseProcessorNumber -MaxProcessors $MaxProc -MaxProcessorNumber $maxProcessorNumber -profile $profile -NoRestart
 				}
 
 			}
