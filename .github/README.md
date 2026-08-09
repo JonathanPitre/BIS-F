@@ -1,9 +1,12 @@
-# BIS-F
-Base Image Script Framework (BIS-F)
+# GitHub community health
 
-The Base Image Script Framework (BIS-F) is the perfect way to seal your Base Image. 
-Whatever your environment has run Citrix XenApp, Citrix XenDesktop with PVS or MCS, Citrix AppLayering, VMware Horizon View, 
-you must 		https://eucweb.com your Base Image before you can distribute this Image to multiple devices. 
-If you install your Base Image from scratch or update them with new software, 
-for the sealing process of your Base Image run this framework (preparation), 
-it makes it also unique if you booting up your cloned device (personalization).
+Community files for **[Base Image Script Framework (BIS-F)](../README.md)**.
+
+| File | Purpose |
+| --- | --- |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Contributor Covenant |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to report issues and submit changes |
+| [PULL_REQUEST_TEMPLATE.md](PULL_REQUEST_TEMPLATE.md) | Default PR checklist |
+| [ISSUE_TEMPLATE/](ISSUE_TEMPLATE/) | Bug, feature, and question forms |
+
+For product overview, supported platforms, quick start, and repository layout, see the [project README](../README.md).
