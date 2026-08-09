@@ -60,7 +60,7 @@ flowchart LR
 | Deyda | develop tip | README / merges | Noise | defer | deferred |
 | micswe | Clear EventLog → Get-WinEvent | `97_PrepBISF_PRE_BaseImage.ps1` | Selective only | manual port | done |
 | micswe | WEM cache / McAfee / uploads | Full-file rewrites / BOM / binary Custom | Noisy | defer | deferred |
-| Agents | new scripts | `10_PrepBISF_*` | New files | add | pending |
+| Agents | new scripts | `10_PrepBISF_AV-SentinelOne.ps1`, `10_PrepBISF_Rapid7.ps1` | New files | add | done |
 
 ## Phase 1 — Inventory and remotes
 
@@ -110,12 +110,12 @@ git fetch --all
 
 ### Implementation tasks
 
-- [ ] Create `Framework/SubCall/Preparation/10_PrepBISF_AV-SentinelOne.ps1`.
-- [ ] **Install path (if scripted):** support `msiexec /i "SentinelAgent*.msi" VDI_MASTER=1` (site token params per deployment — placeholders only).
-- [ ] **Version detection:** branch logic for VDI_MASTER-supported vs legacy `sentinelctl` reset.
-- [ ] **Scan wait:** poll scan status with timeout and logging; fail sealing with clear message if scan incomplete.
-- [ ] **Pre-shutdown reset:** run appropriate identity reset; verify with `agent_id -v`.
-- [ ] Document operator prerequisites: site token, optional anti-tamper passphrase, minimum agent version.
+- [x] Create `Framework/SubCall/Preparation/10_PrepBISF_AV-SentinelOne.ps1`.
+- [x] **Install path (if scripted):** document `msiexec /i "SentinelAgent*.msi" VDI_MASTER=1` (site token placeholders only).
+- [x] **Version detection:** branch logic for VDI_MASTER-supported vs legacy `sentinelctl` reset.
+- [x] **Scan wait:** poll scan status with timeout and logging; fail sealing with clear message if scan incomplete.
+- [x] **Pre-shutdown reset:** run appropriate identity reset; verify with `agent_id -v`.
+- [x] Document operator prerequisites: site token, optional anti-tamper passphrase (`BISF_S1_PASSPHRASE`).
 
 ### SentinelOne flow (operator view)
 
@@ -143,11 +143,11 @@ Citrix does not publish a separate Rapid7 duplicate-ID procedure. Use [Virtualiz
 
 ### Implementation tasks
 
-- [ ] Add `Framework/SubCall/Preparation/10_PrepBISF_Rapid7.ps1`: stop `ir_agent`, delete `bootstrap.cfg`, verify file absent.
-- [ ] Idempotent checks: skip or no-op if agent not installed.
-- [ ] Match naming and phase placement of peer security scripts.
-- [ ] Log paths and service state before/after for troubleshooting.
-- [ ] Comment block: expected clone behavior; pointer to InsightVM correlation doc if ops team uses it.
+- [x] Add `Framework/SubCall/Preparation/10_PrepBISF_Rapid7.ps1`: stop `ir_agent`, delete `bootstrap.cfg`, verify file absent.
+- [x] Idempotent checks: skip or no-op if agent not installed.
+- [x] Match naming and phase placement of peer security scripts.
+- [x] Log paths and service state before/after for troubleshooting.
+- [x] Comment block: expected clone behavior; pointer to InsightVM correlation doc if ops team uses it.
 
 ### Rapid7 flow (operator view)
 
@@ -189,15 +189,15 @@ Citrix does not publish a separate Rapid7 duplicate-ID procedure. Use [Virtualiz
 ## Quality checklist (sign-off)
 
 - [x] Branch `2608` created from `develop` before merge/agent commits
-- [ ] All listed remotes fetched; merge matrix complete
-- [ ] `5fe4abd` intent ported (or skip documented); Siebrandf explicitly skipped
-- [ ] All applicable open PRs merged or deferred with reason
-- [ ] SentinelOne: VDI_MASTER + legacy `sentinelctl` paths handled
-- [ ] SentinelOne: full-disk scan wait with timeout/logging
-- [ ] Rapid7: service stopped and `bootstrap.cfg` removed before seal
-- [ ] Scripts follow BIS-F phase conventions
+- [x] All listed remotes fetched; merge matrix complete
+- [x] `5fe4abd` intent ported (or skip documented); Siebrandf explicitly skipped
+- [x] All applicable open PRs merged or deferred with reason
+- [x] SentinelOne: VDI_MASTER + legacy `sentinelctl` paths handled
+- [x] SentinelOne: full-disk scan wait with timeout/logging
+- [x] Rapid7: service stopped and `bootstrap.cfg` removed before seal
+- [x] Scripts follow BIS-F phase conventions
 - [ ] Lab validation checklist executed on at least one clone test
-- [ ] No unresolved merge conflicts in tree
+- [x] No unresolved merge conflicts in tree
 
 ## Open considerations
 

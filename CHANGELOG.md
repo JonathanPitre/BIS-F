@@ -7,6 +7,16 @@ and this project uses a custom versioning scheme (`major.LTSR.build`).
 
 ## [Unreleased]
 
+### Added
+
+- SentinelOne VDI sealing script `10_PrepBISF_AV-SentinelOne.ps1` (scan wait, VDI_MASTER / legacy `sentinelctl` identity reset)
+- Rapid7 Insight Agent sealing script `10_PrepBISF_Rapid7.ps1` (stop `ir_agent`, remove `bootstrap.cfg`)
+
+### Changed
+
+- Fork branch `2608`: merge Pascal PDQ fixes, DennisHirsch Office 2019/2021/2024 paths, EUCweb PRs [#364](https://github.com/EUCweb/BIS-F/pull/364) / [#379](https://github.com/EUCweb/BIS-F/pull/379), selective micswe Get-WinEvent event-log clear
+- Port EUCweb `5fe4abd` intent: `Set-NetAdapterRSS -NoRestart` in `52_PrepBISF_VMWareTCPIPOptimizations.ps1`
+
 ### Fixed
 
 - Refactored README.md so it's aligned with GitHub best practices
@@ -16,6 +26,12 @@ and this project uses a custom versioning scheme (`major.LTSR.build`).
 - Fixed all typos, spelling and grammar error
 
 - [#374](https://github.com/EUCweb/BIS-F/issues/374): 02_PersBISF_CTX.ps1 never finishes on Azure AD only Azure VMs (MS)
+- CimInstance `.put()` volume label failure — use `Get-Volume` / `Set-Volume` (Pascal PDQ)
+- Get-BISFDiskID options for missing disks (Pascal PDQ)
+- [#367](https://github.com/EUCweb/BIS-F/issues/367) / [#368](https://github.com/EUCweb/BIS-F/issues/368): dangling ELSE / nvfbcenable on CVAD 2203+ (Pascal PDQ)
+- RDS timebomb not created when reset attempted (Pascal PDQ)
+- [#371](https://github.com/EUCweb/BIS-F/issues/371): New SEP client not recognized (trondr / EUCweb #379)
+- Office 2019/2021/2024 / LTSC OSPPREARM path detection (DennisHirsch26 / EUCweb #393)
 
 ## [7.1912.7.11042] - 2022-11-19
 
