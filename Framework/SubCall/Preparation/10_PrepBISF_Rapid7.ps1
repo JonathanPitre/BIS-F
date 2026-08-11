@@ -39,14 +39,14 @@ Begin {
 
 Process {
 
-	function Test-BISFRapid7Installed {
+	function Test-Rapid7Installed {
 		if (Test-Path -LiteralPath $AgentRoot) { return $true }
 		$svcObj = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 		if ($svcObj) { return $true }
 		return $false
 	}
 
-	function Stop-BISFRapid7Agent {
+	function Stop-Rapid7Agent {
 		[CmdletBinding(SupportsShouldProcess = $true)]
 		[OutputType([bool])]
 		param()
@@ -79,7 +79,7 @@ Process {
 		return $true
 	}
 
-	function Remove-BISFRapid7BootstrapCfg {
+	function Remove-Rapid7BootstrapCfg {
 		[CmdletBinding(SupportsShouldProcess = $true)]
 		[OutputType([bool])]
 		param()
@@ -112,19 +112,19 @@ Process {
 	}
 
 	#### Main Program
-	IF (-not (Test-BISFRapid7Installed)) {
+	IF (-not (Test-Rapid7Installed)) {
 		Write-BISFLog -Msg "$Product not installed — skipping"
 		return
 	}
 
 	Write-BISFLog -Msg "Preparing $Product for imaging (stop service + remove bootstrap.cfg)" -ShowConsole -Color Cyan
 
-	$stopped = Stop-BISFRapid7Agent
+	$stopped = Stop-Rapid7Agent
 	if (-not $stopped) {
 		throw "Rapid7 Insight Agent service could not be stopped — sealing aborted"
 	}
 
-	$removed = Remove-BISFRapid7BootstrapCfg
+	$removed = Remove-Rapid7BootstrapCfg
 	if (-not $removed) {
 		throw "Rapid7 bootstrap.cfg could not be removed — sealing aborted"
 	}
