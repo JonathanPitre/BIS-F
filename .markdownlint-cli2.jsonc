@@ -1,0 +1,7 @@
+{
+  // Shared by markdownlint-cli2 (CI) and vscode-markdownlint.
+  // Keep official GPLv3 text verbatim - do not lint LICENSE as Markdown.
+  "ignores": [
+    "LICENSE"
+  ]
+}
