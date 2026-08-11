@@ -9,19 +9,21 @@
 		- After seal, bootstrap.cfg is absent on the master image
 		- On first boot of a clone, the agent starts and recreates bootstrap.cfg with a new ID
 
-		Optional (console, not this script): InsightVM non-persistent VDI correlation
-		https://docs.rapid7.com/insightvm/non-persistent-vdi-correlation/
-
-		Reference:
-		https://docs.rapid7.com/insight-agent/virtualization/
+		Optional (console, not this script): configure InsightVM non-persistent VDI correlation.
+	.EXAMPLE
 	.NOTES
 		Author: Jonathan Pitre
+		Company: EUCWeb.com
 
-		History
-			08.08.2026 JP: Script created for fork branch 2608
+		History:
+		08.08.2026 JP: Script created for fork branch 2608
 
 	.LINK
 		https://eucweb.com
+	.LINK
+		https://docs.rapid7.com/insight-agent/virtualization
+	.LINK
+		https://docs.rapid7.com/insightvm/non-persistent-vdi-correlation
 #>
 
 Begin {
@@ -45,7 +47,15 @@ Process {
 	}
 
 	function Stop-BISFRapid7Agent {
+		[CmdletBinding(SupportsShouldProcess = $true)]
+		[OutputType([bool])]
+		param()
+
 		Write-BISFLog -Msg "Service $ServiceName state before stop: $((Get-Service -Name $ServiceName -ErrorAction SilentlyContinue).Status)" -SubMsg
+		if (-not $PSCmdlet.ShouldProcess($ServiceName, 'Stop service')) {
+			return $true
+		}
+
 		$svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
 		IF ($svc -eq $true) {
 			Invoke-BISFService -ServiceName $ServiceName -Action Stop
@@ -70,9 +80,17 @@ Process {
 	}
 
 	function Remove-BISFRapid7BootstrapCfg {
+		[CmdletBinding(SupportsShouldProcess = $true)]
+		[OutputType([bool])]
+		param()
+
 		Write-BISFLog -Msg "bootstrap.cfg path: $BootstrapCfg" -SubMsg
 		if (-not (Test-Path -LiteralPath $BootstrapCfg)) {
 			Write-BISFLog -Msg "bootstrap.cfg already absent — nothing to delete" -ShowConsole -Color DarkCyan -SubMsg
+			return $true
+		}
+
+		if (-not $PSCmdlet.ShouldProcess($BootstrapCfg, 'Remove bootstrap.cfg')) {
 			return $true
 		}
 
