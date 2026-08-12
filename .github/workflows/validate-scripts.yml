@@ -1,0 +1,87 @@
+name: Validate Scripts
+
+on:
+  pull_request:
+    paths:
+      - "Framework/**"
+      - ".vscode/PSScriptAnalyzerSettings.psd1"
+      - "tools/Invoke-BISFScriptAnalyzer.ps1"
+      - "tools/Test-BISFVariableCasing.ps1"
+      - ".github/tool-versions.env"
+      - ".github/workflows/validate-scripts.yml"
+  push:
+    branches: [master, main, develop]
+    paths:
+      - "Framework/**"
+      - ".vscode/PSScriptAnalyzerSettings.psd1"
+      - "tools/Invoke-BISFScriptAnalyzer.ps1"
+      - "tools/Test-BISFVariableCasing.ps1"
+      - ".github/tool-versions.env"
+      - ".github/workflows/validate-scripts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-scripts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  psscriptanalyzer:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Load tool versions
+        shell: pwsh
+        run: |
+          Get-Content .github/tool-versions.env |
+            Where-Object { $_ -and ($_ -notmatch '^\s*#') } |
+            ForEach-Object { Add-Content -Path $env:GITHUB_ENV -Value $_.Trim() }
+
+      - name: Cache PSScriptAnalyzer module
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.USERPROFILE }}\Documents\PowerShell\Modules\PSScriptAnalyzer
+          key: psscriptanalyzer-${{ env.PSSCRIPTANALYZER_VERSION }}-${{ runner.os }}
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module PSScriptAnalyzer -RequiredVersion $env:PSSCRIPTANALYZER_VERSION -Force -Scope CurrentUser
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          & ./tools/Invoke-BISFScriptAnalyzer.ps1 -Severity Error
+
+  variable-casing:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch pull request base
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          git fetch --no-tags --prune origin "refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+
+      - name: Check variable PascalCase (changed files)
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          & ./tools/Test-BISFVariableCasing.ps1 -ChangedOnly -BaseRef "origin/${{ github.base_ref }}"
+
+      - name: Check variable PascalCase (full Framework)
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          & ./tools/Test-BISFVariableCasing.ps1
