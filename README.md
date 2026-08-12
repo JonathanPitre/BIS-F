@@ -98,7 +98,7 @@ Custom scripts can be dropped into:
 There is no packaged installer from this fork yet (the old Chocolatey feed is legacy and will
 not be updated; a **winget** package is planned later). A new compiled build will take time—
 this fork is headed toward a full rewrite that needs substantial testing—so install the
-latest `develop` sources from
+latest `2608` sources from
 [JonathanPitre/BIS-F](https://github.com/JonathanPitre/BIS-F) with PowerShell.
 
 Run **as Administrator** (adjust `$InstallRoot` if you prefer another path):
@@ -106,7 +106,7 @@ Run **as Administrator** (adjust `$InstallRoot` if you prefer another path):
 ```powershell
 $ErrorActionPreference = 'Stop'
 $InstallRoot = 'C:\Program Files (x86)\Base Image Script Framework (BIS-F)'
-$ZipUrl = 'https://github.com/JonathanPitre/BIS-F/archive/refs/heads/develop.zip'
+$ZipUrl = 'https://github.com/JonathanPitre/BIS-F/archive/refs/heads/2608.zip'
 $TempRoot = Join-Path $env:TEMP ('BIS-F-' + [guid]::NewGuid().ToString('N'))
 $ZipPath = Join-Path $TempRoot 'BIS-F.zip'
 $Keep = @('Framework', 'ADMX', 'PrepareBaseImage.cmd', 'LICENSE')
@@ -208,7 +208,6 @@ Full version history and release notes live in [CHANGELOG.md](CHANGELOG.md).
 | --- | --- |
 | Project site | [eucweb.com](https://eucweb.com) |
 | Online documentation | [BIS-F docs](https://eucweb.com/doc/bis-f-1912) |
-| This fork | [JonathanPitre/BIS-F](https://github.com/JonathanPitre/BIS-F) |
 | Upstream project | [EUCweb/BIS-F](https://github.com/EUCweb/BIS-F) |
 | Issues & feature requests | [GitHub Issues](https://github.com/JonathanPitre/BIS-F/issues) |
 | Release history | [CHANGELOG.md](CHANGELOG.md) |
