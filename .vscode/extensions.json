@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "streetsidesoftware.code-spell-checker",
+    "DavidAnson.vscode-markdownlint",
+    "ms-vscode.powershell",
+    "yzhang.markdown-all-in-one",
+    "mdickin.markdown-shortcuts"
+  ]
+}
