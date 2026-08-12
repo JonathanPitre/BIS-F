@@ -9,11 +9,16 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Added
 
-- SentinelOne VDI sealing script `10_PrepBISF_AV-SentinelOne.ps1` (scan wait, VDI_MASTER / legacy `sentinelctl`
-  identity reset)
+- SentinelOne VDI sealing script `10_PrepBISF_AV-SentinelOne.ps1` (FDCS `read_fdcs_status=2` gate, `VDI=true` /
+  Randomize UUID verify, legacy `sentinelctl agent_id` reset, VSS snapshot disable-on-seal with
+  `BISF_S1_SKIP_VSS` opt-out)
 - Rapid7 Insight Agent sealing script `10_PrepBISF_Rapid7.ps1` (stop `ir_agent`, remove `bootstrap.cfg`)
+- NinjaOne Agent sealing script `10_PrepBISF_NinjaOne.ps1` (stop `NinjaRMMAgent`, run `noclone.exe`; warn/stop
+  `lockhart` if Ninja Backup is present)
 - Markdownlint workspace config + GitHub Actions (`markdownlint.yml`)
 - PSScriptAnalyzer settings, `tools/Invoke-BISFScriptAnalyzer.ps1`, and `validate-scripts.yml` CI
+- `tools/Test-BISFVariableCasing.ps1` and a `variable-casing` job in `validate-scripts.yml`
+  (PascalCase gate for Framework scripts; PR ratchet on changed files, full scan on push)
 - Experimental PowerShell CodeQL workflow (`codeql-powershell.yml`)
 - VS Code / Cursor extension recommendations and `tools/Install-BISFDevExtensions.ps1`
 - Dependabot for GitHub Actions (daily, grouped) with squash auto-merge workflow
@@ -21,6 +26,10 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Changed
 
+- Refreshed root `LICENSE` to the current official GNU GPLv3 text (HTTPS FSF/GNU URLs); SPDX `GPL-3.0`
+  badge/README note, module `LicenseUri`, and `.gitattributes` LF rule for GitHub license detection
+- Exclude `LICENSE` from markdownlint (`MD041`) via `.markdownlint-cli2.jsonc` and plaintext
+  file association so GPLv3 stays verbatim
 - Product version `2608.0` (`BISF.psd1` ModuleVersion); ADMX/ADML `revision` / `minRequiredRevision` set to
   `2608.0` (`schemaVersion` remains `1.0`)
 - ADMX namespace: replace FullArmor Migrator identity with `EUCweb.Policies.BISF` (prefix `BISF`). Registry path
@@ -35,6 +44,17 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Polished `README.md` (downloads badge, section emojis, current product names, clone-identity / AV-EDR messaging,
   fixed docs links)
 - Rewrote `.github/CONTRIBUTING.md` with setup, lint, and PR guidance
+- Adopted PascalCase as the standard for PowerShell variables and parameters across `Framework/`
+  (ADMX/registry mirrors and legacy path globals unchanged); documented in `.github/CONTRIBUTING.md`
+- Expanded workspace spell check exceptions in `.vscode/settings.json` (`cSpell.words`), including
+  Windows service names listed in the changelog
+- Modernized `Framework/SubCall/Template/BISF_TEMPLATE.ps1` for Prep/Pers Custom scripts
+  (`$ScriptPath` init, BIS-F logging/service patterns, shared Prep/Pers guidance)
+- Cleared PSScriptAnalyzer Error and Warning findings under repo settings: expand cmdlet aliases,
+  left-side `$null` comparisons, non-empty catch no-ops, UTF-8 BOM on new prep scripts, explicit
+  `FunctionsToExport` in `BISF.psd1`, rename script-local `Clear-BISFEventLogs`; exclude intentional
+  legacy rules (`PSUseShouldProcessForStateChangingFunctions`, `PSAvoidOverwritingBuiltInCmdlets`,
+  `PSAvoidAssignmentToAutomaticVariable`, `PSAvoidUsingInvokeExpression`, `PSAvoidUsingWMICmdlet`)
 
 ### Fixed
 
@@ -46,6 +66,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - RDS timebomb not created when reset attempted (Pascal PDQ)
 - [#371](https://github.com/EUCweb/BIS-F/issues/371): New SEP client not recognized (trondr / EUCweb #379)
 - Office 2019/2021/2024 / LTSC OSPPREARM path detection (DennisHirsch26 / EUCweb #393)
+- Spell check findings in project Markdown and related docs
 
 ## [7.1912.7.11042] - 2022-11-19
 
@@ -68,7 +89,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#304](https://github.com/EUCweb/BIS-F/issues/304): WEM Agent 2012, add new startup options to ADMX (MS)
 - [#303](https://github.com/EUCweb/BIS-F/issues/303): Updated CheckCDRom function to allow for builds where CDROM drive
   letter has already been removed (JS)
-- [#302](https://github.com/EUCweb/BIS-F/issues/302): WriteCache disk access validated in Set-Logfile function before
+- [#302](https://github.com/EUCweb/BIS-F/issues/302): WriteCache disk access validated in Set-LogFile function before
   log move (JS)
 - [#42](https://github.com/EUCweb/BIS-F/issues/42): EventLog is moved, but Path is never changed (MW)
 - [#299](https://github.com/EUCweb/BIS-F/issues/299): Not so fast reconnect in Windows Server 2019 (MW)
@@ -201,12 +222,12 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 - [#206](https://github.com/EUCweb/BIS-F/issues/206): ADML: WEM AgentCache better description (MS)
 - [#210](https://github.com/EUCweb/BIS-F/issues/210): App-V PackageInstallationRoot not detected properly (MS)
-- [#137](https://github.com/EUCweb/BIS-F/issues/137): TM OfficeScan wrong GUID -> using Get-BISFMacaddress
+- [#137](https://github.com/EUCweb/BIS-F/issues/137): TM OfficeScan wrong GUID -> using Get-BISFMacAddress
   -ConvertToLower to get the lowercase MAC (MS)
-- [#212](https://github.com/EUCweb/BIS-F/issues/212): SEP duplicate HardwareID - Get-BISFMacaddress returns lower-
+- [#212](https://github.com/EUCweb/BIS-F/issues/212): SEP duplicate HardwareID - Get-BISFMacAddress returns lower-
   instead of uppercase MACAddress (MS)
 - [#211](https://github.com/EUCweb/BIS-F/issues/211): Fixed Log output spelling (JK)
-- [#206](https://github.com/EUCweb/BIS-F/issues/206): Reboot loop if central logshare is configured (MS)
+- [#206](https://github.com/EUCweb/BIS-F/issues/206): Reboot loop if central log share is configured (MS)
 - [#207](https://github.com/EUCweb/BIS-F/issues/207): Pagefile not set (MS)
 - [#201](https://github.com/EUCweb/BIS-F/issues/201): Hydration not starting if configured (MS)
 
@@ -341,7 +362,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#65](https://github.com/EUCweb/BIS-F/issues/65): ADMX Extension to delete the log files for Citrix Optimizer (MS)
 - [#133](https://github.com/EUCweb/BIS-F/issues/133): Removing Disable scheduled Task (MS)
 - [#134](https://github.com/EUCweb/BIS-F/issues/134): Removing Disable Cortana (MS)
-- [#3](https://github.com/EUCweb/BIS-F/issues/3): VerySilent is no longer necessary in ADMX; because all MessageBoxes
+- [#3](https://github.com/EUCweb/BIS-F/issues/3): VerySilent is no longer necessary in ADMX; because all message boxes
   are removed completely (MS)
 - [#3](https://github.com/EUCweb/BIS-F/issues/3): Remove Message box and using default setting if GPO is not configured
   (MS)
@@ -389,7 +410,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 - [#112](https://github.com/EUCweb/BIS-F/issues/112): CTX optimizer: Multiple Templates with AutoSelect for OS Template
   (MS)
-- [#117](https://github.com/EUCweb/BIS-F/issues/117): WinSxS hide DISM process and get logfile of the DISM Process into
+- [#117](https://github.com/EUCweb/BIS-F/issues/117): WinSxS hide DISM process and get log file of the DISM Process into
   BIS-F log (MS)
 - [#115](https://github.com/EUCweb/BIS-F/issues/115): ADMX: Control of WinSxS Optimization (MS)
 
@@ -446,7 +467,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#62](https://github.com/EUCweb/BIS-F/issues/62): BIS-F AppLayering - Layer Finalized is blocked with MCS - Booting
   Layered Image (MS)
 - [#74](https://github.com/EUCweb/BIS-F/issues/74): The Version from the Service could not extracted (MS)
-- [#66](https://github.com/EUCweb/BIS-F/issues/66): Vietool.exe - custom searchpath not working correctly (MS)
+- [#66](https://github.com/EUCweb/BIS-F/issues/66): Vietool.exe - custom search path not working correctly (MS)
 - [#55](https://github.com/EUCweb/BIS-F/issues/55): Windows Defender -ArgumentList failing (MS)
 - [#63](https://github.com/EUCweb/BIS-F/issues/63): Citrix AppLayering - Create C:\Windows\Logs folder automatically if
   it doesn't exist (MS)
@@ -538,7 +559,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - On the Mounted Disk, the same UniqueID must be set to fix boot record issues
   (<https://blogs.technet.microsoft.com/markrussinovich/2011/11/06/fixing-disk-signature-collisions/>) (MS)
 - Show the right Eventlog during move to the WCD (MS)
-- Retry 30 times if Logshare on network path is not found with fallback after max. is reached (MS)
+- Retry 30 times if logs hare on network path is not found with fallback after max. is reached (MS)
 - If booting up in private Mode the vhdx and custom unc-path for P2V is configured, defrag runs on the UNC-Path and not
   on the BaseDisk itself (MS)
 - IF $DiskNameExtension -eq "noVirtualDisk" and custom UNC-Path is enabled, running OfflineDefrag on custom UNC-Path
@@ -601,7 +622,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Fixed
 
-- Central logshare enabled for preparation also (MS)
+- Central log share enabled for preparation also (MS)
 - Fix some typos (MS)
 - [#212](https://github.com/EUCweb/BIS-F/issues/212): If personality.ini does does not exist, run Set-PVSTool otherwise
   check vDiskMode (MS)
@@ -623,7 +644,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 ### Changed
 
 - Change sleep timer from 5 to 20 seconds after time sync on startup (MS)
-- WEM AgentCacheRefresh can be using without the WEM Brokername specified from WEM ADMX (MS)
+- WEM AgentCacheRefresh can be using without the WEM Broker name specified from WEM ADMX (MS)
 
 ### Fixed
 
@@ -701,10 +722,10 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Fixed
 
-- If AppLayering is installed and running not inside ELM, the VM is build first time, run defrag on systemdrive (MS)
+- If AppLayering is installed and running not inside ELM, the VM is build first time, run defrag on system drive (MS)
 - If OS and Platform/Application Layer not detected, VM is not running inside ELM, give back
   $Global:CTXAppLayerName="No-ELM" (MS)
-- After restart WEM Agentservice, Netlogon must be started also (MS)
+- After restart WEM agent service, Netlogon must be started also (MS)
 - Fixed typos in the ADMX/ADML file, optimized folder structure, removed duplicate definition (WindowsVista) (JP)
 - Create or update BIS-F schedule Task to run with highest privileges (MS)
 - If defrag not run, write-out the DiskMode to the BIS-F log for further analysis if possible to run (MS)
@@ -718,45 +739,45 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Fixed
 
-- Fix for Bug 200: Popup shouldn't show up if Central Logshare is enabled OR disabled (FF)
+- Fix for Bug 200: Popup shouldn't show up if Central Log share is enabled OR disabled (FF)
 
 ## [6.1.0+04.112] - 2017-08-16
 
 ### Added
 
-- DiskMode: extend Diskmode with AppLayering, ReadOnlyAppLayering, ReadWriteAppLayering, etc (MS)
+- DiskMode: extend Disk mode with AppLayering, ReadOnlyAppLayering, ReadWriteAppLayering, etc (MS)
 
 ### Changed
 
-- Skip Device Personalization, based on Diskmode selected in ADMX (MS)
-- Moved all BIS-F logs to the BISF logfolder, local and UNC-Path, previous only personalization logs would be moved to
+- Skip Device Personalization, based on Disk mode selected in ADMX (MS)
+- Moved all BIS-F logs to the BISF log  folder, local and UNC-Path, previous only personalization logs would be moved to
   the UNC-Path (MS)
 
 ### Fixed
 
 - Personalization: If Citrix AppLayering is installed, skip reboot (MS)
-- From every P2V conversion, the logfile would be included into the BIS-F log, instead of error only (MS)
+- From every P2V conversion, the log file would be included into the BIS-F log, instead of error only (MS)
 - ADMX: in some textbox fields, they starting with empty space (MS)
-- If Custom UNC-Path in ADMX is enabled, during "Personalization" the wrong $returnvalue like MCSPrivate is given back,
-  instead of "UNC-Path" (MS)
+- If Custom UNC-Path in ADMX is enabled, during "Personalization" the wrong $ReturnValue like MCSPrivate is given back,
+instead of "UNC-Path" (MS)
 
 ## [6.1.0+04.111] - 2017-08-04
 
 ### Added
 
 - [#150](https://github.com/EUCweb/BIS-F/issues/150): Function Get-BISFDiskMode: If Custom UNC-Path in ADMX is enabled,
-  get back 'UNC-Path' as $returnvalue (MS)
+  get back 'UNC-Path' as $ReturnValue (MS)
 - P2V : Get-BISFBootMode get back UEFI or Legacy to using different command line switches for ImagingWizard or P2PVS
   (MS)
 - P2V : Automatic fallback to ImagingWizard with UEFI BootMode, if P2PVS in ADMX is selected (MS)
 - System Startup : In AppLayering OS-Layer only, do not Resync Time with Domain and do not Reapply Computer GPO,
   Computer is mostly not domain joined (MS)
-- System Startup : With DiskMode AppLayering in OS-Layer the WSUS Update Service would be starteded (MS)
+- System Startup : With DiskMode AppLayering in OS-Layer the WSUS Update Service would be started (MS)
 - [#150](https://github.com/EUCweb/BIS-F/issues/150): IF ADMX for custom VHDX UNC-Path is enabled, Defrag can't
   performed (MS)
 - [#150](https://github.com/EUCweb/BIS-F/issues/150): IF ADMX for custom VHDX UNC-Path is enabled, the arguments for
   the P2V Tool must be changed, this vDisk Mode must not being checked (MS)
-- [#152](https://github.com/EUCweb/BIS-F/issues/152): ADMX - Set Logfile Retention via ADMX (MS)
+- [#152](https://github.com/EUCweb/BIS-F/issues/152): ADMX - Set-LogFile Retention via ADMX (MS)
 - [#193](https://github.com/EUCweb/BIS-F/issues/193): ADMX - Eventlog and Log Configuration, change PowerShell Code to
   use new reg values (MS)
 - [#196](https://github.com/EUCweb/BIS-F/issues/196): ADMX - delprof2 edit custom arguments (MS)
@@ -857,7 +878,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Added
 
-- With new Installerbuild (incremental version) in each DTAP Stage the build number also written to the log and the
+- With new Installer build (incremental version) in each DTAP Stage the build number also written to the log and the
   Windows Title, replace the manual change of the $ReleaseType in BISF.psm1 (MS)
 
 ### Fixed
@@ -904,7 +925,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Fixed
 
-- [#175](https://github.com/EUCweb/BIS-F/issues/175): After Patchday in April 2017 powershell command stop-computer
+- [#175](https://github.com/EUCweb/BIS-F/issues/175): After patch day in April 2017 powershell command stop-computer
   does not work as expected (privilege not held), using shutdown /s now - tested on Windows 2008 R2 and Server 2016 (MS)
 
 ## [6.0.0]
@@ -923,7 +944,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#134](https://github.com/EUCweb/BIS-F/issues/134): Prepare RES One Workspace Management, RES ONE Automation and RES
   ONE Service Store Software for Image Management Software, Thanks to Company RES Germany: Oliver Lomberg & Nina Metz
   for additional enhancements information to create this script (MS)
-- [#140](https://github.com/EUCweb/BIS-F/issues/140): Added CLI command 'XAImagePrepRemoval YES | NO' or MessageBox
+- [#140](https://github.com/EUCweb/BIS-F/issues/140): Added CLI command 'XAImagePrepRemoval YES | NO' or message box
   during Prepare XenApp for Provisioning/Image Management you can choose RemoveCurrentServer and
   ClearLocalDatabaseInformation, this would be set with this Parameter or prompted to administrator (MS)
 - [#139](https://github.com/EUCweb/BIS-F/issues/139): Added McAfee 5.X Agent Support (JP/MS)
@@ -941,7 +962,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Added AppSense Support (MS)
 - Added Delprof support (MS)
 - Added turbo.net support (MS)
-- Added function Invoke_BISFLogRotate to Cleanup Logfiles and keep only a configured value of files (BR)
+- Added function Invoke_BISFLogRotate to cleanup Log files and keep only a configured value of files (BR)
 - Added CLI-commands to the BISF-Log (MS)
 - Added CLI Switch DisableConsoleCheck to disable the check of the console session (MS)
 - [#111](https://github.com/EUCweb/BIS-F/issues/111): Added nvspbind.exe to unbind IPV6 from AdapterGuid (MS)
@@ -951,7 +972,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 - Final Test passed with Server 2016 / XA 7.13 and Server 2008 R2 / XA 6.5 (MS)
 - For P2PVS reconfigure Microsoft Software Shadow Copy Provider Service and VSS Service, needed them for P2PVS (MS)
-- After update on 13.03.2017 Bugfix WriteCacheDisk detection (MS)
+- After update on 13.03.2017 Fixed WriteCacheDisk detection (MS)
 - Failure when opening ADMX (MS)
 - Updated graphical Design and Logo for BIS-F, thanks to Marco Zimmermann (MS)
 - Extended unneeded services for Windows 10 and Server 2016 to disable (MS)
@@ -960,17 +981,17 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Change defrag arguments to support Windows 10 and Server 2016 (MS)
 - Get file version of Service ImagePath (MS)
 - Get file version of 3rd Party Apps (MS)
-- ADMX: configure PVS WriteCacheDisk driveletter, thanks to Marco Zimmermann (MS)
+- ADMX: configure PVS WriteCacheDisk drive letter, thanks to Marco Zimmermann (MS)
 - RES Workspace Manager; Changed Remove-Item -Path "$InstallDir_REG\Data\DBCache\Resources\custom_resources\*" -recurse
   (MS)
 - RES ONE Automation Console; Added stop service command (MS)
 - RES Workspace Manager; Added IF (Test-Path "$HKLM_WIN_CVN\WUID") {Remove-Item -Path "$HKLM_WIN_CVN\WUID"} (MS)
 - Excluded cleanmgr.exe for now - currently buggy, restart needed to delete superseded updates (MS)
 - VMware OS Optimization Tool limit search folders to "C:\Program Files","C:\Program Files (x86)","C:\Windows\system32"
-  and their subfolders (MS)
+  and their sub folders (MS)
 - RES Workspace Manager and Automation Manager; In Citrix PVS if an alternate DBCache Path is already configured, BIS-F
   will use it (MS)
-- [#126](https://github.com/EUCweb/BIS-F/issues/126): MCS only: IF Diskmode is set to "MCSPrivate" no personalization
+- [#126](https://github.com/EUCweb/BIS-F/issues/126): MCS only: If disk mode is set to "MCSPrivate" no personalization
   is running (MS)
 - Test-PVS Drive letter running on preparation state only (MS)
 - Migrated BISF Registry Items to a new location (MS)
@@ -984,7 +1005,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
   BIS-F (MS)
 - Updated SEP preparation Script (BR)
 - Modify BIS-F scheduled task if it already exist, thanks to Valentino Pemoni (MS)
-- Extended CLI command, you can now use -LogShare NO if you prefer not to use a central LogShare (MS)
+- Extended CLI command, you can now use -LogShare NO if you prefer not to use a central log share (MS)
 - Changed SDelete to run on the WriteCacheDisk on PVS Target Devices only (MS)
 - Get duplicate AdapterGUID back, instead unique of each adapter (MS)
 - Check PVS DiskMode at Prerequisites, to get a warning on startup if Disk is in ReadOnly Mode and exit script (MS)
@@ -1029,14 +1050,14 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Move $Pvd_LOGFile_search="Update Inventory completed" from 99_PrepBISF_PostBaseImage.ps1 to
   98_PrepBISF_BuildBaseImage.ps1 thanks to Mathias Kowalkowski (MS)
 - [#112](https://github.com/EUCweb/BIS-F/issues/112): Kaspersky AntiVirus - wrong path to get from executable (MS)
-- In ADMX - configure PVS WriteCacheDisk driveletter (MS)
+- In ADMX - configure PVS WriteCacheDisk DriveLetter (MS)
 - Syntax error in 97_PrepBISF_PRE_BaseImage.ps1 (MS)
 - Read Variable $varCLI = ... in all affected preparation scripts (MS)
 - Detecting WSUS TargetGroup (MS)
 - Prepare Citrix PVS WriteCacheDisk - Bug fix: DiskID is not language neutral, split string after ":" to read the right
   side only, thanks to Marco Zimmermann (MS)
 - Sophos Preparation - Fixed typos to get the right service name -> $ServiceNames[0] (MS)
-- Get-BISFMacaddress - Fixed empty space given back from $mac, thanks to Valentino Pemoni (MS)
+- Get-BISFMacAddress - Fixed empty space given back from $mac, thanks to Valentino Pemoni (MS)
 - Wrong syntax for RES ONE Automation Console (MS)
 - Fixed typo in 10_PrepBISF_uberAgent.ps1 - $PSScriptName = [System.IO.Path]::GetFileName($PSScriptFullName) (MS)
 - [#149](https://github.com/EUCweb/BIS-F/issues/149): Added $Global:LIC_BISF_CLI_LSb="" to define the variable,
@@ -1046,14 +1067,14 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - If the Citrix PVS Target Device Driver is detected and no vDisk is assigned (DiskMode = Unmanaged), BIS-F exit script
   on start-up with an error message (MS)
 - [#134](https://github.com/EUCweb/BIS-F/issues/134): PrepareWriteCacheDisk: Add space on either side of the Drive
-  letter variable $searvol, thanks to Jeremy Saunders (MS)
+  letter variable $SearVol, thanks to Jeremy Saunders (MS)
 - [#134](https://github.com/EUCweb/BIS-F/issues/134): PrepareWriteCacheDisk: MBR disk with 8 characters to get the
   right uniqueID from Diskpart only, PVS does not support GPT disk, see <https://support.citrix.com/article/CTX139478>
   thanks to Jeremy Saunders (MS)
 - [#135](https://github.com/EUCweb/BIS-F/issues/135): IF PVS Target Device Driver is installed, spool and EventLogs
   like Application, System, Security and XA LicenseFile would be redirected to WriteCacheDisk, otherwise leave it the
   original path (MS)
-- Defrag does not identify the right driveletter of the vDisk after P2PVS if the drivelabel is empty (MS)
+- Defrag does not identify the right DriveLetter of the vDisk after P2PVS if the drive  label is empty (MS)
 - [#114](https://github.com/EUCweb/BIS-F/issues/114): Variables must be cleared after each step, to not store the value
   in the variable and use them in the next $prepCommand or $PostCommand (MS)
 - Set-QMID would never be processed, wrong syntax in IF (($returnTestXDSoftware -eq "true") -or ($returnTestPVSSoftware
@@ -1068,7 +1089,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Syntax error Invoke-BISFService: Set-Service -Name $svc.Name -StartupType $StartType | Out-Null (BR)
 - Give wrong variable back, switch RO and RW (function Invoke-BISFService) (MS)
 - Heavy bug in function Invoke-BISFService, services would not be started if needed (MS)
-- Fixed issue SCOM service would be starteded on every Image Mode if installed (MS)
+- Fixed issue SCOM service would be started on every Image Mode if installed (MS)
 - [#113](https://github.com/EUCweb/BIS-F/issues/113): AppVClient Cache did not resolve to the correct service status,
   thanks to Valentino Pemoni (MS)
 
@@ -1132,7 +1153,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Added support to reset Distributed Transaction Coordinator service if installed (MS)
 - Added support to clear DHCP entries of network adapter, to prevent blue screen on some PVS target devices
   <https://www.citrix.com/blogs/2015/09/29/pvs-target-devices-the-blue-screen-of-death-rest-easy-we-can-fix-that> (MS)
-- Added silent option 'delAllUsersStart menue' to delete all Objects in C:\ProgramData\Microsoft\Windows\Start Menu\*
+- Added silent option 'delAllUsersStart menu' to delete all Objects in C:\ProgramData\Microsoft\Windows\Start Menu\*
   (MS)
 - Added delay between time sync and GPO execution to successfully apply the GPO after DST (BR)
 - Added username to each log file entry (MS)
@@ -1147,7 +1168,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Changed product name from "FrontRange DSM " to "Heat DSM" (MS)
 - XenApp 6.x only: Personalization on each device -> Configure Citrix LicenseFile Cache Location and set NTFS
   Permissions for NetworkService with full access (MS)
-- 10_PrepBISF_IME.ps1; Added new script to delete Office 2010 IME Keyboards from Autorun (BR)
+- 10_PrepBISF_IME.ps1; Added new script to delete Office 2010 IME Keyboards from startup (BR)
 - 10_PersBISF_Services.ps1; Rewritten script with standard .SYNOPSIS (MS)
 - 10_PersBISF_TimeAndGPO.ps1; Rewritten script with standard .SYNOPSIS (MS)
 - 10_PersBISF_OfficeKMS.ps1; Rewritten script with standard .SYNOPSIS (MS)
@@ -1155,7 +1176,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - 10_PersBISF_WriteCacheDisk.ps1; Rewritten script with standard .SYNOPSIS (MS)
 - 10_PersBISF_ZCM.ps1; Rewritten script with standard .SYNOPSIS (MS)
 - 10_PersBISF_TM.ps1; Rewritten script with standard .SYNOPSIS (MS)
-- 10_PersBISF_SEP.ps1; Rewritten script with standard .SYNOPSIS, central BISF function couldn't be usedd for services,
+- 10_PersBISF_SEP.ps1; Rewritten script with standard .SYNOPSIS, central BISF function couldn't be used for services,
   SEP Service must be started with smc.exe (MS)
 - 10_PersBISF_SCOM.ps1; Rewritten script with standard .SYNOPSIS, use central BISF function to configure service (MS)
 - 10_PersBISF_SCCM.ps1; Rewritten script with standard .SYNOPSIS, use central BISF function to configure service (MS)
@@ -1172,7 +1193,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - 10_PrepBISF_ZCM.ps1; Rewritten script with standard .SYNOPSIS, use central BISF function to configure service (MS)
 - 10_PrepBISF_VSE.ps1; Rewritten script with standard .SYNOPSIS, use central BISF function to configure service (MS)
 - 10_PrepBISF_Splunk.ps1; Rewritten script with standard .SYNOPSIS, use central BISF function to configure service (MS)
-- 10_PrepBISF_SEP.ps1; Rewritten script with standard .SYNOPSIS, central BISF function couldn't be usedd for services,
+- 10_PrepBISF_SEP.ps1; Rewritten script with standard .SYNOPSIS, central BISF function couldn't be used for services,
   SEP Service must be stopped with smc.exe (MS)
 - 10_PrepBISF_SCOM.ps1; Rewritten script with standard .SYNOPSIS, use central BISF function to configure service (MS)
 - 90_PreBISF_CTX.ps1; Changed line 103 to create Cache Directory to store the CTX License File: New-Item -path
@@ -1203,7 +1224,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
   installed (MS)
 - Fixed delAllUsersStart menu, typos in variable (MS)
 - In Feature 99: Wrong Dword to completely disable IPv6 - 0x000000FF (JP/MS)
-- Misspelled CLI switch change from delAllUsersStart menue to delAllUsersStart menu (MS)
+- Misspelled CLI switch fixed to delAllUsersStart menu (MS)
 - BISF.psm1; $ImageSW would be set to false, wrong order (MS)
 - BISF.psm1; Fixed code error 1133 Write-Progress "Done" "Done" -completed (MS)
 - Stop DHCP client Service, see
@@ -1218,7 +1239,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#89](https://github.com/EUCweb/BIS-F/issues/89): SEP Personalization: Fixed the registry location for the SEP-Client
   to WoW6432Node, Fix in line 31-32 and function SetHostID (MS)
 - [#76](https://github.com/EUCweb/BIS-F/issues/76): FSLogix: Do not check PVS or MCS DiskMode, Service is already
-  running or would be starteded if stopped (MS)
+  running or would be started if stopped (MS)
 - [#76](https://github.com/EUCweb/BIS-F/issues/76): FSLogix: remove to set FSLogix service to manual, stopped service
   only (MS)
 
@@ -1229,7 +1250,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Added function Show-CustomInputBox to show a message box to enter a value (needed for FSLogix central rules share)
   (MS)
 - Added new Script 00_XX_PrepBISF_SecureBISFFolder.ps1 to remove user access to the BIS-F installation Folder (MB)
-- [#63](https://github.com/EUCweb/BIS-F/issues/63): On Base Image only, the WSUS Service would be startededed, on
+- [#63](https://github.com/EUCweb/BIS-F/issues/63): On Base Image only, the WSUS Service would be started and enabled, on
   shared image devices the service would be stopped and disabled (BR)
 - Executing all queued .NET compilation jobs; Precompiling assemblies with Ngen.exe can improve the startup time for
   some applications (MS)
@@ -1244,7 +1265,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 - FSLogix copy rules and assignment files from central share, use CLI command FSXRulesShare or waiting for the GUI
   prompt during preparation phase, the rules and assignment files would be copied on computer startup (MS)
-- BIS-F Logviewer; Search on specified path and their subfolders only, for a better performance (MS)
+- BIS-F log viewer; Search on specified path and their sub folders only, for a better performance (MS)
 - Change; Renamed Scripts from CCM to SCCM and OpsMgr to SCOM (MS)
 - Renamed Scripts from ...vDisk.ps1 to ...BaseImage.ps1 (MS)
 
@@ -1262,10 +1283,10 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
   Office, an error occurs. Check if Office is installed, before starting rearm process (MS)
 - Support for PVS 7.7: $P2PVS_LOGFile_search="Conversion was successful" must be changed to
   $P2PVS_LOGFile_search="successful" to get ready for PVS7.7 and earlier (MS)
-- Fixed P2PVS/XenConvert define LogfilePath, before P2PVS/XenConvert would be startededed, existing log file would be
+- Fixed P2PVS/XenConvert define LogFilePath, before P2PVS/XenConvert would be started, existing log file would be
   deleted (MS)
 - Fixed code for .NET compilation jobs (MS)
-- [#52](https://github.com/EUCweb/BIS-F/issues/52): Changed code for P2PVS or XenConvert Logfile detection, looking in
+- [#52](https://github.com/EUCweb/BIS-F/issues/52): Changed code for P2PVS or XenConvert log file detection, looking in
   all paths and deleted older files (MS)
 - [#62](https://github.com/EUCweb/BIS-F/issues/62): Added new function Write-ZeroesToFreeSpace instead of
   NimbleFastReclaim -> buggy on Windows Server 2012 R2 (MS)
@@ -1280,8 +1301,8 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#49](https://github.com/EUCweb/BIS-F/issues/49): SCOM preparation : Fix line 39: rename $returnCheckPVSSoftware to
   $returnTestPVSSoftware (MS)
 - Different path for OSSPREAM.exe not valid for Office 2013, for Office 2010 only (MS)
-- Running from SCCM or MDT -> Changing to $logpath only (prev. $LogFilePath = "$logPath\$LogFolderName"), only files
-  directly in the folder are preserved, not subfolders (MS)
+- Running from SCCM or MDT -> Changing to $LogPath only (prev. $LogFilePath = "$LogPath\$LogFolderName"), only files
+  directly in the folder are preserved, not suborders (MS)
 - [#48](https://github.com/EUCweb/BIS-F/issues/48): Novell ZCM: Duplicated GUID after ZCM Agent update, designed a new
   script for ZCM Agent preparation (MS)
 - [#43](https://github.com/EUCweb/BIS-F/issues/43): Wrong CLI variable for P2PVS -> Line 150 must be changed from
@@ -1307,7 +1328,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Added
 
-- Added advanced commands to diskpartfile to bring the disk online if the WriteCacheDisk is not formatted (MS)
+- Added advanced commands to diskpart file to bring the disk online if the WriteCacheDisk is not formatted (MS)
 - Added fix for MSMQ Service if running XD FP1 and session recording, the VDA has the same QMId as the MSMQ
   (<http://support.citrix.com/proddocs/topic/xenapp-xendesktop-76fp1/xad-xaxd76fp1-knownissues.html>) (MS)
 - Added CLI Option to perform or suppress a system shutdown after successfully build the Base Image (MS)
@@ -1380,7 +1401,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Fixed
 
-- Fixed wrong $cachelocation from XML-File (thanks to David Rosenthal) (MS)
+- Fixed wrong $CacheLocation from XML-File (thanks to David Rosenthal) (MS)
 
 ## [4.5.1]
 
@@ -1423,19 +1444,19 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Added
 
-- Added Script for default Logviewer 10_XX_PrepPVS_SMSTrace.ps1 as external log file viewer (MS)
+- Added Script for default log viewer 10_XX_PrepPVS_SMSTrace.ps1 as external log file viewer (MS)
 
 ### Changed
 
-- 10_XX_PersPVS_WriteCacheDisk.ps1; Changed to $LOGfile = Set-Logfile (MS)
+- 10_XX_PersPVS_WriteCacheDisk.ps1; Changed to $LogFile = Set-LogFile (MS)
 - 10_XX_LIB_Functions.psm1; Added function ChangeNetworkProviderOrder (MS)
-- 10_XX_PrepPVS_SEP.ps1; Changed NetworkProviderOrder SnacNp and add Silentswitch -AVFullScan (YES|NO) (MS)
-- PrepareXAforPVS.cmd; Supressed message for set-executionpolicy remoteSigned (MS)
+- 10_XX_PrepPVS_SEP.ps1; Changed NetworkProviderOrder SnacNp and add silent switch -AVFullScan (YES|NO) (MS)
+- PrepareXAforPVS.cmd; Suppressed message for Set-ExecutionPolicy remoteSigned (MS)
 - Revisited all scripts to replace Write-Host for Write-Log (MS)
 - 10_XA_Main_PrepPVS.ps1 and 20_XA_Main_PersPVS.ps1; Changed logging for Preparation and Personalization to a single
   file, previously set to one log file per script (MS)
 - 10_XA_Main_PrepPVS.ps1 / 20_XA_Main_PersPVS.ps1; Changed log filename from .log to .bis (BIS = BaseImageScripts) (MS)
-- All scripts; Removed $logfile = Set-logFile, it would be used in the 10_XX_LIB_Config.ps1 Script only (MS)
+- All scripts; Removed $LogFile = Set-LogFile, it would be used in the 10_XX_LIB_Config.ps1 Script only (MS)
 
 ### Removed
 
@@ -1466,7 +1487,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 - 10_XX_LIB_Functions.psm1; Added function get-version, to display this in the console window (MS)
 - 10_XX_LIB_Config.ps1; Added get-Version to show current running version (MS)
-- 97_XX_PrepPVS_PRE-vDisk.ps1; Changed console output to get-adaptername, line 91 -> Write-Log -Msg " Read AdapterName:
+- 97_XX_PrepPVS_PRE-vDisk.ps1; Changed console output to Get-AdapterName, line 91 -> Write-Log -Msg " Read AdapterName:
   $element" (MS)
 
 ## [4.1]
@@ -1486,7 +1507,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Changed
 
-- 97_XX_PrepPVS_PRE-vDisk.ps1; Added multihoming support to read adaptername from each network adapter, see line 80 (MS)
+- 97_XX_PrepPVS_PRE-vDisk.ps1; Added multihoming support to read adapter name from each network adapter, see line 80 (MS)
 - 90_XA_PrepPVS_XenApp.ps1; Cleanup Citrix Group Policy Cache > function CleanUpCTXPolCache (BR)
 
 ## [4.0]
@@ -1513,7 +1534,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - 98_XX_PrepPVS_BUILD_vDisk.ps1; Run TargetOSOptimizer.exe if booted from hard disk only (MS)
 - 97_XX_PrepPVS_PRE-vDisk.ps1; [array]$PreMSG = "N" #<<-- display a message box to perform these step, set Y = YES or N
   = NO (MS)
-- 97_XX_PrepPVS_PRE-vDisk.ps1; Added question to run Defrag on Systemdisk (MS)
+- 97_XX_PrepPVS_PRE-vDisk.ps1; Added question to run Defrag on system disk (MS)
 - 97_XX_PrepPVS_PRE-vDisk.ps1; Added question to run Sysinternals SDelete to zero out empty vDisk areas and reduce
   storage (MS)
 - 10_XA_Main_PrepPVS.ps1; Removed Title, this would be implemented in the central functions (MS)
@@ -1661,8 +1682,8 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Changed
 
-- 10_XX_GenPVS_WriteCacheDisk; Changed location for temporary Diskpartfile to %TEMP% (MS)
-- 10_XX_PrepPVS_WriteCacheDisk; Changed location for temporary Diskpartfile to %TEMP% (MS)
+- 10_XX_GenPVS_WriteCacheDisk; Changed location for temporary Diskpart file to %TEMP% (MS)
+- 10_XX_PrepPVS_WriteCacheDisk; Changed location for temporary Diskpart file to %TEMP% (MS)
 
 ### Fixed
 
