@@ -1,9 +1,10 @@
-<policyDefinitions revision="1.0" schemaVersion="1.0">
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitions revision="2608.0" schemaVersion="1.0">
   <policyNamespaces>
-    <target prefix="fullarmor" namespace="FullArmor.Policies.8792664D_EBD1_45F9_815F_65014D0224E7" />
+    <target prefix="BISF" namespace="EUCweb.Policies.BISF" />
     <using prefix="windows" namespace="Microsoft.Policies.Windows" />
   </policyNamespaces>
-  <resources minRequiredRevision="1.0" />
+  <resources minRequiredRevision="2608.0" fallbackCulture="en-US" />
   <categories>
     <category name="CAT_BISF" displayName="$(string.CAT_BISF)" />
     <category name="CAT_3P" displayName="$(string.CAT_3P)">
@@ -34,7 +35,7 @@
   <policies>
     <policy name="POL_CTXOE" class="Machine" displayName="$(string.POL_CTXOE)" explainText="$(string.POL_CTXOE_Help)" presentation="$(presentation.POL_CTXOE)" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_POL_CTXOE">
       <parentCategory ref="CAT_CTX" />
-      <supportedOn ref="SUPPORTED_WindowsVista" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />
       <enabledList>
         <item key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_CTXOE">
           <value>
@@ -719,7 +720,7 @@
       </disabledList>
       <elements>
         <boolean id="CHK_P2V_SKIP_IMG" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_P2V_SKIP_IMG" />
-        <enum id="DST_WC_Driveletter" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_WCD">
+        <enum id="DST_WC_DriveLetter" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_WCD">
           <item displayName="$(string.ITM_0)">
             <value>
               <string>NONE</string>

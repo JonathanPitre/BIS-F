@@ -1,8 +1,8 @@
-<policyDefinitionResources revision="1.0" schemaVersion="1.0">
-  <displayName>
-  </displayName>
-  <description>Base Image Script Framework (BIS-F helps you to seal and personalize your Base Image for Citrix, VMware View and Microsoft environments. With this Group Policy you can configure the CLI commands to fully automate BIS-F and runs the sealing process without any interaction.)
-Copyright EUCweb 2020</description>
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources revision="2608.0" schemaVersion="1.0">
+  <displayName>Base Image Script Framework (BIS-F)</displayName>
+  <description>Base Image Script Framework (BIS-F) helps you to seal and personalize your Base Image for Citrix, VMware Horizon, and Microsoft environments. With this Group Policy you can configure the CLI commands to fully automate BIS-F and run the sealing process without any interaction.
+Copyright EUCweb. Version 2608.0</description>
   <resources>
     <stringTable>
       <string id="CAT_3P">3rd Party Tools</string>
@@ -11,7 +11,6 @@ Copyright EUCweb 2020</description>
       <string id="CAT_CTX">Citrix</string>
       <string id="CAT_Global">Global</string>
       <string id="CAT_MS">Microsoft</string>
-      <string id="CAT_Misc">Miscellaneous</string>
       <string id="CAT_NV">Novell</string>
       <string id="CAT_RES">Ivanti</string>
       <string id="CAT_TBN">Turbo.net</string>
@@ -43,8 +42,8 @@ If you would like to use your own templates with auto-select, you can override t
 For example, if your template is called "EUCweb_Windows_10_1809.xml", use TemplatePrefix "EUCweb_Windows" to automatically
 select your templates based on the current operating system and build.
 
-Delete Optimizer LogFile:
-The Optimizer Logfile is included in the BIS-F logfile, with this option you can delete it from the system itself.
+Delete Optimizer Log File:
+The Optimizer Log file is included in the BIS-F log file, with this option you can delete it from the system itself.
 
 
 </string>
@@ -242,7 +241,7 @@ You can also enter a custom search folder, e.g. C:\Windows\System32, if you do n
       <string id="POL_CMTrace_Help">CMTrace log file viewer
 
 If you enable this policy setting, CMTrace will be registered as the default log file viewer for the BIS-F log files.
-If you disable or do not configure this policy setting, CMTrace will not be registered as the default log file viewer for the BIS-F LogFiles.
+If you disable or do not configure this policy setting, CMTrace will not be registered as the default log file viewer for the BIS-F log files.
 
 Prerequisites: CMTrace.exe must be copied to the Base Image first
 
@@ -352,7 +351,7 @@ Prerequisites: VMware OS Optimization Tool must be installed on the Base Image f
 
 Custom Search Folder: You can also enter a custom search folder, e.g. C:\Windows\System32, if you do not configure or disable the custom search folder option, the standard BIS-F folders will be used.
 
-Template Name: Enter the complete path to the Template that will be used during optimization, e.g. C:\temp\mytemplate.xml, if nothing is specified the template for the running OS will be used.
+Template Name: Enter the complete path to the Template that will be used during optimization, e.g. C:\temp\template.xml, if nothing is specified the template for the running OS will be used.
 
 </string>
       <string id="POL_XAImagePrepRemoval">XA 6.x only - Remove current XenApp server from the Farm and clear local database information</string>
@@ -407,7 +406,7 @@ specify a value between 0 -20, means the number of log files being kept.
 
 0 = keep all log files
 
-SCCM / MDT Logfile Redirection:
+SCCM / MDT log file redirection:
 if you enable this policy and BIS-F preparation is triggered from an SCCM or MDT Task Sequence, the BIS-F log is stored inside the Task Sequence log path.
 this policy overwrites the values for a configured Log share if configured.
 
@@ -454,7 +453,7 @@ The vDisk will be created in the VHDX Format with the name %ComputerName%-DateTi
 Custom arguments:
 If you enable this policy, depending on the above configuration you can enter custom arguments, like C: only, for example.
 Note: If you entered incorrect arguments, the conversion of the PVS vDisk might fail!
-If you do not enable, the default arguments inside BIS-F will be used (C: /Autofit /L).
+If you do not enable, the default arguments inside BIS-F will be used (C: /AutoFit /L).
 
 Skip PVS master image creation:
 If you enable this policy setting, master image creation will be skipped even if Provisioning Services Target Device software is found.
@@ -470,11 +469,11 @@ This is relevant to format the Cache Disk only.
 Note: If you configure this incorrectly, a reboot loop will occur!
 
 Disable Redirection:
-With a configured Cache Disk the eventlogs and spool directory is redirected to the persistent drive. With this setting, you can disable the redirection.
+With a configured Cache Disk the eventlog and spool directory is redirected to the persistent drive. With this setting, you can disable the redirection.
 
 Enable manually Configuration of the Cache Disk ID:
-If the persistent Drive is not right formatted with BIS-F, this is mostly an issue with the Cache Disk ID. With this setting you can manually override the Disk ID for the persistent Drive and select the ID drom the Drop Down Box between 0-5.
-run 'diskpart' from an administrative command prompt and enter 'list disk' to get se Disk ID and compare it with the BIS-F Log and conifure the GPO if required.
+If the persistent Drive is not right formatted with BIS-F, this is mostly an issue with the Cache Disk ID. With this setting you can manually override the Disk ID for the persistent Drive and select the ID from the Drop Down Box between 0-5.
+run 'diskpart' from an administrative command prompt and enter 'list disk' to get se Disk ID and compare it with the BIS-F Log and configure the GPO if required.
 </string>
       <string id="ITM_0"> NONE</string>
       <string id="ITM_B">B:</string>
@@ -528,7 +527,7 @@ You can specify the maximum execution timeout for the personalization process. D
       <string id="POL_ExpCfg">Shared Configuration</string>
       <string id="POL_ExpCfg_Help">This policy setting allows you to export the BISF CLI commands that are set from a complete BIS-F policy to an JSON file. This can be used for computers that are running in Worker Groups (like Citrix AppLayering) or you have no access to modify the Active Directory Group Policies.
 
-If you enable this policy setting, you must enter a valid path (recommended: BIS-F Installationpath)
+If you enable this policy setting, you must enter a valid path (recommended: BIS-F installation path)
 
 1. Running Powershell with Administrative privileges
 2. cd &lt;BIS-F Installation folder&gt;\Framework
@@ -591,7 +590,7 @@ If you disable this policy setting, .NET Optimization is disabled during sealing
 If you do not configure this policy setting, .NET Optimization is NOT run during sealing (Preparation phase)
 
 You can run up to 2 .NET optimizations. Enter thr arguments only without ngen.exe.
-The Text will be displayed during the BIS-F preparation and in the logfile too.
+The Text will be displayed during the BIS-F preparation and in the log file too.
 
 Default Optimization 1:
 Text: Executing all queued .NET compilation jobs
@@ -614,7 +613,7 @@ Maximum Execution Timeout:
 You can specify the maximum execution timeout for the WinSxS Optimization. The default is set to 240 minutes, min. 60, max 480. You can increase/decrease the value in increments of 15 minutes. If this value is reached during the WinSxS Optimization, the DISM Process is terminated.
 
 About WinSxS:
-The Windows component store (C:\Windows\winsxs) directory is used during servicing operations within Windows installations. Servicing operations include, but are not limited to, Windows Update, service pack, and hotfix installations.
+The Windows component store (C:\Windows\WinSxS) directory is used during servicing operations within Windows installations. Servicing operations include, but are not limited to, Windows Update, service pack, and hotfix installations.
 
 The component store contains all the files that are required for a Windows installation. And, any updates to those files are also held within the component store as the updates are installed. This causes the component store to grow over time as more updates, features, or roles are added to the installation. The component store uses NTFS hard links between itself and other Windows directories to increase the robustness of the Windows platform.
 </string>
@@ -647,20 +646,20 @@ If you disable this policy setting, the WEM Agent will be configured back to the
 
 Move WEM Agent Cache to the PVS or MCSIO persistent disk:
 If you enable this item, the WEM Agent Cache is moved to the CacheDisk
-Requirements: PVS Target Device driver or VDA 1903 or higer (MCSIO) must be installed to take effect.
+Requirements: PVS Target Device driver or VDA 1903 or higher (MCSIO) must be installed to take effect.
 
 
 Enable custom WEMCache folder name:
 Specify a custom WEM Agent Cache folder name, enable this setting
-Requirements: PVS Target Device driver or VDA 1903 or higer (MCSIO) must be installed to take effect.
+Requirements: PVS Target Device driver or VDA 1903 or higher (MCSIO) must be installed to take effect.
 
 WEM Agent Cache folder name:
 Enter the name of the WEM Agent Cache folder, e.g. WEMCache
 If the folder doesn't exist, it will be created automatically
-Requirements: PVS Target Device driver or VDA 1903 or higer (MCSIO) must be installed to take effect.
+Requirements: PVS Target Device driver or VDA 1903 or higher (MCSIO) must be installed to take effect.
 
 NOTE: Please specify the name of the folder only, without any drive letter!
-The Cache Folder is created like %CachDisk Driveletter%\Citrix\%WEM Agent Cache folder name%
+The Cache Folder is created like %CacheDisk DriveLetter%\Citrix\%WEM Agent Cache folder name%
 The Citrix folder is created from BIS-F automatically.
 
 Configure the WEM Agent Startup Cache Option:
@@ -818,8 +817,8 @@ Disable Redirection:
 With a configured MCSIO Disk the event logs and spool directory is redirected to the persistent drive. With this setting you can disable the redirection
 
 Enable manually Configuration of the Cache Disk ID:
-If the persistent Drive is not right formatted with BIS-F, this is mostly an issue with the Cache Disk ID. With this setting you can manually override the Disk ID for the persistent Drive and select the ID drom the Drop Down Box between 0-5.
-run 'diskpart' from an administrative command prompt and enter 'list disk' to get se Disk ID and compare it with the BIS-F Log and conifure the GPO if required.</string>
+If the persistent Drive is not right formatted with BIS-F, this is mostly an issue with the Cache Disk ID. With this setting you can manually override the Disk ID for the persistent Drive and select the ID from the Drop Down Box between 0-5.
+run 'diskpart' from an administrative command prompt and enter 'list disk' to get se Disk ID and compare it with the BIS-F Log and configure the GPO if required.</string>
       <string id="POL_MS_AAD">Azure Active Directory (AAD)</string>
       <string id="POL_MS_AAD_Help">Perform AAD Tasks:
 
@@ -894,7 +893,7 @@ https://support.citrix.com/article/CTX284738
           <defaultValue>C:\Program Files (x86)\CitrixOptimizer</defaultValue>
         </textBox>
         <textBox refId="TXT_CTXOE_TemplatePreFix">
-          <label>(Optional) Templateprefix</label>
+          <label>(Optional) Template Prefix</label>
           <defaultValue>Citrix_Windows</defaultValue>
         </textBox>
         <checkBox refId="CHK_CTXOE_LogDelete">Delete Optimizer LogFile</checkBox>
@@ -949,7 +948,7 @@ https://support.citrix.com/article/CTX284738
         <text>Run SDelete during computer startup (personalization)</text>
         <checkBox refId="CHK_SD_runPVSCacheDisk">Citrix PVS Image on the persistent Cache Disk if the image is in shared image mode</checkBox>
         <checkBox refId="CHK_SD_runMCSIO">Citrix MCSIO on persistent Cache Disk if the image is in shared image mode</checkBox>
-        <checkBox refId="CHK_SD_runMCS">Citrix MCS on Systemdrive if the image is in shared image mode</checkBox>
+        <checkBox refId="CHK_SD_runMCS">Citrix MCS on System drive if the image is in shared image mode</checkBox>
       </presentation>
       <presentation id="POL_PAGEFILE">
         <dropdownList refId="PageFile_DriveLetter_Options" defaultItem="0">Page file drive</dropdownList>
@@ -1011,7 +1010,7 @@ https://support.citrix.com/article/CTX284738
           <defaultValue>\\Server\Share</defaultValue>
         </textBox>
         <decimalTextBox refId="DXT_LogRetention" defaultValue="5">Log Retention</decimalTextBox>
-        <checkBox refId="CHK_CLI_TSLogRedirection">SCCM / MDT Logfile Redirection</checkBox>
+        <checkBox refId="CHK_CLI_TSLogRedirection">SCCM / MDT log file redirection</checkBox>
         <checkBox refId="CHK_LOG_WPT">Enable Windows Powershell Transcript</checkBox>
       </presentation>
       <presentation id="POL_FldCfg">
@@ -1028,7 +1027,7 @@ https://support.citrix.com/article/CTX284738
       </presentation>
       <presentation id="POL_PVSCfg">
         <checkBox refId="CHK_P2V_SKIP_IMG">Skip PVS master image creation</checkBox>
-        <dropdownList refId="DST_WC_Driveletter" defaultItem="0">Write cache drive letter</dropdownList>
+        <dropdownList refId="DST_WC_DriveLetter" defaultItem="0">Write cache drive letter</dropdownList>
         <dropdownList refId="DST_P2PVS_Tool" defaultItem="0">P2V Tool</dropdownList>
         <dropdownList refId="DST_VDISK_FORMAT" noSort="true" defaultItem="1">vDisk Format</dropdownList>
         <checkBox refId="CHK_P2VHDX">Enable P2V Custom UNC-Path</checkBox>
@@ -1106,7 +1105,7 @@ https://support.citrix.com/article/CTX284738
         <decimalTextBox refId="DXT_MET" defaultValue="60">MaxExecution timeout in minutes (default: 60)</decimalTextBox>
       </presentation>
       <presentation id="POL_WEMCfg">
-        <checkBox refId="CHK_CLI_WEMCache">Move WEM Agent Cache to the PVS write cache ddisk</checkBox>
+        <checkBox refId="CHK_CLI_WEMCache">Move WEM Agent Cache to the PVS write cache disk</checkBox>
         <checkBox refId="CHK_CLI_WEMb">Enable custom WEM Agent Cache folder name</checkBox>
         <textBox refId="TXT_CLI_WEMFolder">
           <label>WEM Agent Cache folder name</label>
