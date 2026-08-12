@@ -1,0 +1,68 @@
+# Bumps non-Action pins in .github/tool-versions.env (PSScriptAnalyzer, CodeQL
+# PowerShell extractor + query pack). GitHub Actions themselves are Dependabot.
+#
+# Optional repo secret AUTOMATION_TOKEN (PAT with contents + pull requests):
+# PRs created with it trigger CI and can auto-merge. GITHUB_TOKEN alone opens a
+# PR that will not start workflows (GitHub platform limit).
+
+name: Update tool pins
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-tool-pins
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HAS_AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Refresh tool pins
+        id: pins
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./tools/Update-BISFToolPins.ps1
+
+      - name: Create pull request
+        if: steps.pins.outputs.has_changes == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.AUTOMATION_TOKEN != '' && secrets.AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          commit-message: "ci: bump CI tool pins"
+          branch: chore/tool-pins
+          delete-branch: true
+          title: "ci: bump CI tool pins"
+          labels: dependencies,automated
+          body: |
+            Automated refresh of `.github/tool-versions.env`.
+
+            ${{ steps.pins.outputs.summary }}
+
+            - PSScriptAnalyzer (PowerShell Gallery)
+            - Microsoft CodeQL PowerShell extractor (`powershell.zip`)
+            - `microsoft/powershell-queries` pack (GHCR)
+
+            GitHub Actions updates are handled separately by Dependabot.
+
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number != '' && env.HAS_AUTOMATION_TOKEN == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+        run: gh pr merge --auto --squash "$PR_NUMBER"
