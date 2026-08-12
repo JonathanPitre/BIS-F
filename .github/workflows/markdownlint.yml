@@ -1,0 +1,49 @@
+name: Lint Markdown
+
+on:
+  pull_request:
+  push:
+    branches: [master, main, develop]
+    paths:
+      - "**/*.md"
+      - ".markdownlint.json"
+      - ".markdownlint-cli2.jsonc"
+      - ".github/workflows/markdownlint.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  markdownlint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.md"
+
+  markdownlint-fix:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fix Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          fix: true
+          globs: "**/*.md"
+
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "fix: auto-fix markdownlint issues"
