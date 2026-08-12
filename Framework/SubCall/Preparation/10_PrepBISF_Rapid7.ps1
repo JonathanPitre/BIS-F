@@ -1,4 +1,4 @@
-<#
+﻿<#
 	.SYNOPSIS
 		Prepare Rapid7 Insight Agent for VDI / golden-image sealing
 	.DESCRIPTION
@@ -27,9 +27,9 @@
 #>
 
 Begin {
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 
 	$Product = "Rapid7 Insight Agent"
 	$ServiceName = "ir_agent"
@@ -41,8 +41,8 @@ Process {
 
 	function Test-Rapid7Installed {
 		if (Test-Path -LiteralPath $AgentRoot) { return $true }
-		$svcObj = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
-		if ($svcObj) { return $true }
+		$SvcObj = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+		if ($SvcObj) { return $true }
 		return $false
 	}
 
@@ -56,22 +56,22 @@ Process {
 			return $true
 		}
 
-		$svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
-		IF ($svc -eq $true) {
+		$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
+		IF ($Svc -eq $true) {
 			Invoke-BISFService -ServiceName $ServiceName -Action Stop
 		}
 		else {
 			Write-BISFLog -Msg "Service $ServiceName not found via Test-BISFService; attempting Stop-Service if present" -Type W
-			$svcObj = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
-			if ($svcObj -and $svcObj.Status -ne 'Stopped') {
+			$SvcObj = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+			if ($SvcObj -and $SvcObj.Status -ne 'Stopped') {
 				Stop-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
 			}
 		}
 		Start-Sleep -Seconds 2
-		$after = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
-		if ($after) {
-			Write-BISFLog -Msg "Service $ServiceName state after stop: $($after.Status)" -ShowConsole -Color DarkCyan -SubMsg
-			if ($after.Status -ne 'Stopped') {
+		$After = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+		if ($After) {
+			Write-BISFLog -Msg "Service $ServiceName state after stop: $($After.Status)" -ShowConsole -Color DarkCyan -SubMsg
+			if ($After.Status -ne 'Stopped') {
 				Write-BISFLog -Msg "Failed to stop $ServiceName" -Type E
 				return $false
 			}
@@ -86,7 +86,7 @@ Process {
 
 		Write-BISFLog -Msg "bootstrap.cfg path: $BootstrapCfg" -SubMsg
 		if (-not (Test-Path -LiteralPath $BootstrapCfg)) {
-			Write-BISFLog -Msg "bootstrap.cfg already absent — nothing to delete" -ShowConsole -Color DarkCyan -SubMsg
+			Write-BISFLog -Msg "bootstrap.cfg already absent  -  nothing to delete" -ShowConsole -Color DarkCyan -SubMsg
 			return $true
 		}
 
@@ -113,20 +113,20 @@ Process {
 
 	#### Main Program
 	IF (-not (Test-Rapid7Installed)) {
-		Write-BISFLog -Msg "$Product not installed — skipping"
+		Write-BISFLog -Msg "$Product not installed  -  skipping"
 		return
 	}
 
 	Write-BISFLog -Msg "Preparing $Product for imaging (stop service + remove bootstrap.cfg)" -ShowConsole -Color Cyan
 
-	$stopped = Stop-Rapid7Agent
-	if (-not $stopped) {
-		throw "Rapid7 Insight Agent service could not be stopped — sealing aborted"
+	$Stopped = Stop-Rapid7Agent
+	if (-not $Stopped) {
+		throw "Rapid7 Insight Agent service could not be stopped  -  sealing aborted"
 	}
 
-	$removed = Remove-Rapid7BootstrapCfg
-	if (-not $removed) {
-		throw "Rapid7 bootstrap.cfg could not be removed — sealing aborted"
+	$Removed = Remove-Rapid7BootstrapCfg
+	if (-not $Removed) {
+		throw "Rapid7 bootstrap.cfg could not be removed  -  sealing aborted"
 	}
 
 	Write-BISFLog -Msg "$Product preparation complete. Clones will register with a new Agent ID on first start." -ShowConsole -Color Green
