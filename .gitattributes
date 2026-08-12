@@ -6,6 +6,9 @@
 *.md            text
 *.gitattributes text
 
+# Keep the official GPLv3 text LF-normalized for GitHub license detection.
+LICENSE text eol=lf
+
 # Declare files that will always have CRLF line endings on checkout.
 *.ps1    text  eol=crlf
 *.psm1   text  eol=crlf
