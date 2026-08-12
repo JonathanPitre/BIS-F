@@ -1,15 +1,9 @@
 @echo off
-REM *********************************************
-REM *                                           *
-REM *        Prepare your BaseImage             *
-REM *                                           *
-REM *                                           *
-REM *        Created : 27.02.2013               *
-REM *        Author: Matthias Schlimm           *
-REM *        Website: EUCweb.com                *
-REM *********************************************
-REM Comments:
-REM Prepare your Base Image for Microsoft, VMware and Citrix Environments
+REM *************************************************************
+REM *                  Prepare your Base Image                  *
+REM *                    Website: EUCweb.com                    *
+REM * For VDI environments such as Microsoft, VMware and Citrix *
+REM *************************************************************
 
 PushD "%~dp0"
 color 17
@@ -25,7 +19,7 @@ if %errorLevel% == 0 (
 	REM Note: For silent automation please use the additional ADMX template in the BIS-F installation folder and copy them to your PolicyDefinitions folder
 ) else (
 				color 4F
-		echo Failure: Current permissions inadequate.
+		echo Failure: Current permissions are inadequate.
 		echo Close this window and run with administrative permissions again !
 		pause >nul
 		)
@@ -49,7 +43,7 @@ REM 10.02.2015 MS: Added CLI command for CCleaner to clean temp files
 REM 10.02.2015 MS: Added Symantec Endpoint Protection VIEScan silent option to flag the scanned files
 REM 13.02.2015 MS: Added CLI command Reset Performance Counters 'RstPerfCnt''
 REM 15.04.2015 MS: Added CLI command to shutdown or not the Base Image after successful convert -shutdown NO (if script running from MDT or SCCM shutdown would be suppressed)
-REM 28.05.2015 MS: Added CLI command 'VerySilent' to suppress all MessageBoxes
+REM 28.05.2015 MS: Added CLI command 'VerySilent' to suppress all message boxes
 REM 03.06.2015 MS: Added CLI command 'FSXdelRules' to purge the FSLogix Rules from CLI
 REM 13.08.2015 MS: Added CLI command 'FSXRulesShare' to define FSLogix central rules share, to copy frx and fra files on computer startup
 REM 21.08.2015 MS: Change Request 77 - remove all XX,XA,XD from al files and Scripts
@@ -69,4 +63,5 @@ REM 10.01.2017 MS: Added CLI command 'AppVPckRemoval' to delete PreCached App-V 
 REM 11.01.2017 MS: Added Cli command 'RESWASdisableBaseImage' to disable RES ONE Automation Agent on Base Image only to prevent RES ONE License usage for your Base Images
 REM 02.02.2017 MS: Remove CLI command, using ADMX ADMX-File in the BIS-F installation folder and copy them to your PolicyDefinitions
 REM 21.02.2017 MS: checking admin privileges before run script
+REM 09.08.2026 JP: Update script to fix typos and spelling errors
 REM *********************************************
