@@ -1,45 +1,39 @@
 ﻿<#
-.SYNOPSIS
-  <Overview of script>
+	.SYNOPSIS
+		Prepare or personalize <Product Name> for image management
+	.DESCRIPTION
+		Shared starting point for BIS-F Preparation and Personalization scripts.
 
-.DESCRIPTION
-  <Brief description of script>
+		Copy this file to:
+		- Framework/SubCall/Preparation/Custom/NN_PrepBISF_<Name>.ps1  (seal / golden image)
+		- Framework/SubCall/Personalization/Custom/NN_PersBISF_<Name>.ps1  (first boot)
 
-.PARAMETER <Parameter_Name>
-    <Brief description of parameter input required. Repeat this attribute if required>
+		Scripts under Preparation/ and Personalization/ are dot-sourced by the framework
+		after the BISF module is loaded. Use Write-BISFLog (do not Import-Module here).
 
-.INPUTS
-  <Inputs if any, otherwise state None>
+		Prep typically stops services and clears machine-specific state.
+		Pers typically creates host IDs and starts services.
+	.EXAMPLE
+	.NOTES
+		Author: <Name>
+		Company: EUCWeb.com
 
-.OUTPUTS
-  <Outputs if any, otherwise state None - example: Log file stored in C:\Windows\Temp\<name>.log>
+		History:
+		dd.mm.yyyy XX: Script created
 
-
-.NOTES
-
-  Author:	<Name>
-
-  History:
-	dd.mm.yyy - <your Initials>: Initial script
-
-.Link
-  https://eucweb.com
+	.LINK
+		https://eucweb.com
 #>
 
 Begin {
-	# define environment
-	# Setting default variables ($PSScriptroot/$logfile/$PSCommand,$PSScriptFullname/$scriptlibrary/LogFileName) independent on running script from console or ISE and the powershell version.
-	If ($($host.name) -like "* ISE *") {
-		# Running script from Windows Powershell ISE
-		$PSScriptFullName = $psise.CurrentFile.FullPath.ToLower()
-		$PSCommand = (Get-PSCallStack).InvocationInfo.MyCommand.Definition
-	}
-	ELSE {
-		$PSScriptFullName = $MyInvocation.MyCommand.Definition.ToLower()
-		$PSCommand = $MyInvocation.Line
-	}
-	[string]$PSScriptName = (Split-Path $PSScriptFullName -leaf).ToLower()
-	If (($PSScriptRoot -eq "") -or ($PSScriptRoot -eq $null)) { [string]$PSScriptRoot = (Split-Path $PSScriptFullName).ToLower() }
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
+
+	$Product = '<Product Name>'
+	$ServiceName = '<ServiceName>'
+	# Optional ADMX gate (replace <XX> with the policy suffix):
+	# $VarCLI = $LIC_BISF_CLI_<XX>
 }
 
 Process {
@@ -47,13 +41,46 @@ Process {
 	####### functions #####
 	####################################################################
 
+	function Invoke-ProductAction {
+		[CmdletBinding(SupportsShouldProcess = $true)]
+		[OutputType([bool])]
+		param()
 
+		if (-not $PSCmdlet.ShouldProcess($Product, 'Run product action')) {
+			return $true
+		}
+
+		# Prep: typically Invoke-BISFService -Action Stop
+		# Pers: typically Invoke-BISFService -Action Start
+		$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
+		if ($Svc -eq $true) {
+			Invoke-BISFService -ServiceName $ServiceName -Action Stop
+			return $true
+		}
+
+		Write-BISFLog -Msg "Service $ServiceName not found for $Product" -Type W
+		return $false
+	}
 
 	####### end functions #####
 
 
 	#### Main Program
 
+	# Optional ADMX skip (uncomment when $VarCLI is set in Begin):
+	# if (($VarCLI -eq 'NO')) {
+	# 	Write-BISFLog -Msg "Skip $Product (ADMX)"
+	# 	return
+	# }
+
+	$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
+	if ($Svc -eq $true) {
+		Write-BISFLog -Msg "Processing $Product" -ShowConsole -Color Cyan
+		$null = Invoke-ProductAction
+	}
+	else {
+		Write-BISFLog -Msg "Product $Product is NOT installed"
+	}
 }
 
 End {
