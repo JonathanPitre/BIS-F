@@ -1,0 +1,239 @@
+# Experimental PowerShell CodeQL (Microsoft extractor — not an official GitHub language).
+
+# Pins live in .github/tool-versions.env (CODEQL_POWERSHELL_*); refreshed by update-tool-pins.yml.
+
+# SARIF upload needs GHAS (security-events: write).
+
+# Quality lint stays in validate-scripts.yml / markdownlint.yml — do not merge here.
+
+
+
+name: CodeQL PowerShell
+
+
+
+on:
+
+  pull_request:
+
+    paths:
+
+      - "Framework/**/*.ps1"
+
+      - "Framework/**/*.psm1"
+
+      - ".codeqlignore"
+
+      - ".github/tool-versions.env"
+
+      - ".github/workflows/codeql-powershell.yml"
+
+  push:
+
+    branches: [master, main, develop]
+
+    paths:
+
+      - "Framework/**/*.ps1"
+
+      - "Framework/**/*.psm1"
+
+      - ".codeqlignore"
+
+      - ".github/tool-versions.env"
+
+      - ".github/workflows/codeql-powershell.yml"
+
+  schedule:
+
+    - cron: "0 6 * * 1"
+
+  workflow_dispatch:
+
+
+
+permissions:
+
+  contents: read
+
+  packages: read
+
+  security-events: write
+
+  actions: read
+
+
+
+concurrency:
+
+  group: codeql-powershell-${{ github.ref }}
+
+  cancel-in-progress: true
+
+
+
+jobs:
+
+  analyze:
+
+    name: analyze
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    steps:
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v4
+
+
+
+      - name: Load tool versions
+
+        shell: bash
+
+        run: |
+
+          set -euo pipefail
+
+          while IFS= read -r line || [[ -n "$line" ]]; do
+
+            line="${line%%$'\r'}"
+
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+            echo "$line" >> "$GITHUB_ENV"
+
+          done < .github/tool-versions.env
+
+
+
+      - name: Initialize CodeQL CLI
+
+        id: codeql-tools
+
+        uses: github/codeql-action/setup-codeql@v3
+
+
+
+      - name: Install Microsoft PowerShell extractor
+
+        env:
+
+          CODEQL_BIN: ${{ steps.codeql-tools.outputs.codeql-path }}
+
+          CODEQL_POWERSHELL_RELEASE: ${{ env.CODEQL_POWERSHELL_RELEASE }}
+
+        run: |
+
+          set -euo pipefail
+
+          CODEQL_HOME="$(dirname "$CODEQL_BIN")"
+
+          curl -fsSL -o /tmp/powershell.zip \
+
+            "https://github.com/microsoft/codeql/releases/download/${CODEQL_POWERSHELL_RELEASE}/powershell.zip"
+
+          unzip -q /tmp/powershell.zip -d "$CODEQL_HOME"
+
+          "$CODEQL_BIN" resolve languages | grep -q powershell
+
+
+
+      - name: Download Microsoft PowerShell query pack
+
+        env:
+
+          CODEQL_BIN: ${{ steps.codeql-tools.outputs.codeql-path }}
+
+          CODEQL_POWERSHELL_PACK_VERSION: ${{ env.CODEQL_POWERSHELL_PACK_VERSION }}
+
+        run: |
+
+          set -euo pipefail
+
+          "$CODEQL_BIN" pack download \
+
+            "microsoft/powershell-queries@${CODEQL_POWERSHELL_PACK_VERSION}"
+
+
+
+      - name: Create CodeQL database
+
+        env:
+
+          CODEQL_BIN: ${{ steps.codeql-tools.outputs.codeql-path }}
+
+        run: |
+
+          set -euo pipefail
+
+          "$CODEQL_BIN" database create codeql-db \
+
+            --language=powershell \
+
+            --source-root=Framework \
+
+            --overwrite
+
+
+
+      - name: Analyze database
+
+        env:
+
+          CODEQL_BIN: ${{ steps.codeql-tools.outputs.codeql-path }}
+
+          CODEQL_POWERSHELL_PACK_VERSION: ${{ env.CODEQL_POWERSHELL_PACK_VERSION }}
+
+        run: |
+
+          set -euo pipefail
+
+          "$CODEQL_BIN" database analyze codeql-db \
+
+            "microsoft/powershell-queries@${CODEQL_POWERSHELL_PACK_VERSION}" \
+
+            --format=sarifv2.1.0 \
+
+            --output=codeql-results.sarif \
+
+            --sarif-category=powershell \
+
+            --threads=0
+
+
+
+      - name: Upload SARIF to GitHub Security
+
+        if: always() && hashFiles('codeql-results.sarif') != ''
+
+        uses: github/codeql-action/upload-sarif@v3
+
+        with:
+
+          sarif_file: codeql-results.sarif
+
+          category: powershell-codeql
+
+          wait-for-processing: false
+
+
+
+      - name: Upload SARIF artifact
+
+        if: always() && hashFiles('codeql-results.sarif') != ''
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: codeql-powershell-sarif
+
+          path: codeql-results.sarif
+
+          retention-days: 30
+
+
