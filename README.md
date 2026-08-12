@@ -1,9 +1,8 @@
 # Base Image Script Framework (BIS-F)
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-5391FE.svg?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 [![Release](https://img.shields.io/badge/release-7.1912-informational)](CHANGELOG.md)
-[![Downloads](https://img.shields.io/github/downloads/EUCweb/BIS-F/total.svg)](https://eucweb.com/download-bis-f)
 [![Website](https://img.shields.io/badge/docs-eucweb.com-0A66C2)](https://eucweb.com)
 
 Automate **preparation (sealing)** and **personalization** of Windows golden / master
@@ -78,7 +77,7 @@ Custom scripts can be dropped into:
   - Citrix Optimizer, Omnissa OSOT, SDelete, CCleaner, DelProf2, CMTrace
   - FSLogix, Office KMS / Microsoft 365 activation, NVIDIA / Intel graphics VDA support
   - Configuration Manager, SCOM, App-V, Ivanti, OpenText ZENworks, Turbo.net, uberAgent,
-    Tanium, Splunk, and more
+    Tanium, Splunk, Rapid7, NinjaOne, and more
 - **Write-cache disk** handling for PVS and MCSIO
 - **Logging** with optional central log share and PowerShell transcript support
 - **Extensible** preparation and personalization script folders
@@ -94,13 +93,59 @@ Custom scripts can be dropped into:
 - Recommended: copy `ADMX/` templates into your `PolicyDefinitions` folder for GPO-driven
   automation
 
+### 📦 Install
+
+There is no packaged installer from this fork yet (the old Chocolatey feed is legacy and will
+not be updated; a **winget** package is planned later). A new compiled build will take time—
+this fork is headed toward a full rewrite that needs substantial testing—so install the
+latest `develop` sources from
+[JonathanPitre/BIS-F](https://github.com/JonathanPitre/BIS-F) with PowerShell.
+
+Run **as Administrator** (adjust `$InstallRoot` if you prefer another path):
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$InstallRoot = 'C:\Program Files (x86)\Base Image Script Framework (BIS-F)'
+$ZipUrl = 'https://github.com/JonathanPitre/BIS-F/archive/refs/heads/develop.zip'
+$TempRoot = Join-Path $env:TEMP ('BIS-F-' + [guid]::NewGuid().ToString('N'))
+$ZipPath = Join-Path $TempRoot 'BIS-F.zip'
+$Keep = @('Framework', 'ADMX', 'PrepareBaseImage.cmd', 'LICENSE')
+
+New-Item -ItemType Directory -Path $TempRoot -Force | Out-Null
+Invoke-WebRequest -Uri $ZipUrl -OutFile $ZipPath
+Expand-Archive -Path $ZipPath -DestinationPath $TempRoot -Force
+
+$Extracted = Get-ChildItem -Path $TempRoot -Directory |
+  Where-Object { $_.Name -like 'BIS-F-*' } |
+  Select-Object -First 1
+if (-not $Extracted) { throw 'Could not find extracted BIS-F folder.' }
+
+if (Test-Path -LiteralPath $InstallRoot) {
+  Remove-Item -LiteralPath $InstallRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
+
+foreach ($Name in $Keep) {
+  $Source = Join-Path $Extracted.FullName $Name
+  if (-not (Test-Path -LiteralPath $Source)) { continue }
+  Copy-Item -LiteralPath $Source -Destination (Join-Path $InstallRoot $Name) -Recurse -Force
+}
+
+Remove-Item -LiteralPath $TempRoot -Recurse -Force
+Write-Host "BIS-F installed to $InstallRoot"
+```
+
+That keeps only what you need to run and configure BIS-F (`Framework\`, `ADMX\`,
+`PrepareBaseImage.cmd`, and `LICENSE`). Docs, CI, and tooling from the zip are discarded.
+
+Copy `ADMX\` into your `PolicyDefinitions` store when you want GPO-driven automation.
+
 ### 🔒 Prepare (seal) the base image
 
-1. Install BIS-F on the master image (MSI/EXE from
-   [EUCweb downloads](https://eucweb.com/download-bis-f), or use this repository layout).
+1. Install BIS-F on the master image (PowerShell steps above).
 2. Configure policies with the ADMX templates under `ADMX/` (recommended for silent
    automation).
-3. Run preparation **as Administrator**:
+3. Run preparation **as Administrator** from the install folder:
 
    ```cmd
    PrepareBaseImage.cmd
@@ -163,11 +208,9 @@ Full version history and release notes live in [CHANGELOG.md](CHANGELOG.md).
 | --- | --- |
 | Project site | [eucweb.com](https://eucweb.com) |
 | Online documentation | [BIS-F docs](https://eucweb.com/doc/bis-f-1912) |
-| Installation guide | [Installation](https://eucweb.com/docs/bis-f/installation) |
-| Downloads | [Download BIS-F](https://eucweb.com/download-bis-f) |
+| This fork | [JonathanPitre/BIS-F](https://github.com/JonathanPitre/BIS-F) |
 | Upstream project | [EUCweb/BIS-F](https://github.com/EUCweb/BIS-F) |
-| Issues & feature requests | [GitHub Issues](https://github.com/EUCweb/BIS-F/issues) |
-| Chocolatey | [bis-f package](https://community.chocolatey.org/packages/bis-f) |
+| Issues & feature requests | [GitHub Issues](https://github.com/JonathanPitre/BIS-F/issues) |
 | Release history | [CHANGELOG.md](CHANGELOG.md) |
 
 ## 🤝 Contributing
@@ -180,7 +223,8 @@ Please follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
 ## ⚖️ License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is licensed under the [GNU General Public License v3.0](LICENSE)
+([SPDX: GPL-3.0](https://spdx.org/licenses/GPL-3.0.html)).
 
 ## 👥 Authors
 
