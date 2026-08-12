@@ -1,50 +1,154 @@
-# How to contribute
-Contributions to **BIS-F** are highly encouraged and desired. Below are some guidelines that will help make the process as smooth as possible.
+# Contributing to BIS-F
 
-# Getting Started
-* Make sure you have a [GitHub account](https://github.com/signup/free)
-* Submit a new issue, assuming one does not already exist.
-  * Clearly describe the issue including steps to reproduce when it is a bug.
-  * Make sure you fill in the earliest version that you know has the issue.
-* Fork the repository on GitHub
+Thanks for helping improve **Base Image Script Framework (BIS-F)**. This guide covers
+environment setup, local quality checks, and how to open a pull request.
 
-# Suggesting Enhancements
-I want to know what you think is missing from this module and how it can be made better.
-* When submitting an issue for an enhancement, please be as clear as possible about why you think the enhancement is needed and what the benefit of it would be.
+## Code of Conduct
 
-# Making Changes
-* From your fork of the repository, create a topic branch where work on your change will take place.
-* To quickly create a topic branch based on master; `git checkout -b my_contribution master`. Please avoid working directly on the `master` branch.
-* Make commits of logical units.
-* Check for unnecessary whitespace with `git diff --check` before committing.
-* Please follow the prevailing code conventions in the repository. Differences in style make the code harder to understand for everyone.
-* Make sure your commit messages are in the proper format.
-````
-    Add more cowbell to Get-Something.ps1
-    
-    The functionaly of Get-Something would be greatly improved if there was a little
-    more 'pizzazz' added to it. I propose a cowbell. Adding more cowbell has been
-    shown in studies to both increase one's mojo, and cement one's status
-    as a rock legend.
-````
+Please read and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-* Make sure you have added all the necessary Pester tests for your changes.
-* Run _all_ PESTER tests in the module to assure nothing else was accidentally broken.
-* PS1 files must contain only one function
+## Ways to contribute
 
-# Documentation 
-I am infallible and as such my documenation needs no corectoin. In the highly
-unlikely event that that is _not_ the case, commits to update or add documentation
-are highly apprecaited.
+- Report bugs or request features via [GitHub Issues](https://github.com/EUCweb/BIS-F/issues)
+- Improve documentation (`README.md`, `CHANGELOG.md`, ADMX help text)
+- Fix or extend preparation / personalization scripts under `Framework/`
+- Add custom hooks in the `Custom/` folders (see below)
 
-# Submitting Changes
-* Push your changes to a topic branch in your fork of the repository.
-* Submit a pull request to the **master** branch in the main repository.
-* Once the pull request has been reviewed and accepted, it will be merged with the master branch.
+## Development setup
 
-# Additional Resources
-* [General GitHub documentation](https://help.github.com/)
-* [GitHub forking documentation](https://guides.github.com/activities/forking/)
-* [GitHub pull request documentation](https://help.github.com/send-pull-requests/)
-* [GitHub Flow guide](https://guides.github.com/introduction/flow/)
-* [GitHub's guide to contributing to open source projects](https://guides.github.com/activities/contributing-to-open-source/)
+1. Fork the repository and clone your fork.
+2. Open the repo in **Cursor** or **VS Code**.
+3. Install recommended extensions (spell check, markdownlint, PowerShell):
+   - Accept the workspace prompt when the editor suggests extensions, **or**
+   - Run:
+
+     ```powershell
+     .\tools\Install-BISFDevExtensions.ps1
+     ```
+
+4. Install PSScriptAnalyzer (used by the editor and CI):
+
+   ```powershell
+   Install-Module PSScriptAnalyzer -Scope CurrentUser
+   ```
+
+## Local quality checks
+
+### Markdown
+
+Markdown is linted with [markdownlint](https://github.com/DavidAnson/markdownlint) using
+[`.markdownlint.json`](../.markdownlint.json) and [`.markdownlint-cli2.jsonc`](../.markdownlint-cli2.jsonc)
+(which ignores the root `LICENSE` file so GPLv3 stays verbatim). With the recommended extension
+installed, fixes run on save.
+
+### PowerShell
+
+Analyze Framework scripts with the same settings CI uses:
+
+```powershell
+.\tools\Invoke-BISFScriptAnalyzer.ps1
+```
+
+Check variable casing (PascalCase) the same way CI does:
+
+```powershell
+.\tools\Test-BISFVariableCasing.ps1
+```
+
+On a PR-style ratchet (added/modified Framework scripts only):
+
+```powershell
+.\tools\Test-BISFVariableCasing.ps1 -ChangedOnly
+```
+
+Settings live in [`.vscode/PSScriptAnalyzerSettings.psd1`](../.vscode/PSScriptAnalyzerSettings.psd1).
+Some rules are excluded because BIS-F intentionally uses legacy patterns: `$Global:` state across
+prep/pers scripts (`PSAvoidGlobalVars`), compatibility cmdlet shims
+(`PSAvoidOverwritingBuiltInCmdlets`), `$PSScriptRoot`/`$args` bootstrap
+(`PSAvoidAssignmentToAutomaticVariable`), ADMX-driven `Invoke-Expression`
+(`PSAvoidUsingInvokeExpression`), WMI pagefile/sealing paths (`PSAvoidUsingWMICmdlet`), and
+non-interactive helpers without `-WhatIf` (`PSUseShouldProcessForStateChangingFunctions`).
+
+#### PowerShell naming
+
+Use **PascalCase** for PowerShell variables and parameters (for example `$LogPath`,
+`$Computer`, `$ModuleName`), matching the
+[PowerShell Practice and Style Guide](https://poshcode.gitbook.io/powershell-practice-and-style/style-guide/code-layout-and-formatting).
+
+- Scope modifiers use canonical casing: `$Global:`, `$Script:`, `$Env:`.
+- Automatic and preference variables use Microsoft’s spelling (`$PSScriptRoot`,
+  `$ErrorActionPreference`, `$PSBoundParameters`).
+- Do **not** introduce new underscore-separated variable names; prefer `$MainFolder`
+  over `$Main_Folder` in new scripts.
+- New scripts should start from
+  [Framework/SubCall/Template/BISF_TEMPLATE.ps1](../Framework/SubCall/Template/BISF_TEMPLATE.ps1).
+
+**Exceptions** (leave as-is; the casing checker allowlists them):
+
+| Pattern | Why |
+| --- | --- |
+| `$LIC_BISF_*`, `$CHK_*`, `$DST_*` | ADMX / policy / registry value mirrors |
+| Registry path helpers such as `$hklm_software_LIC_CTX_BISF_SCRIPTS` | Shared config contract |
+| Legacy path globals such as `$Main_Folder`, `$SubCall_Folder`, `$LIB_Folder` | Existing shared Framework state |
+| Trivial loop counters (`$i`, `$a`, `$x`) | Idiomatic |
+| Public function names (`Get-BISF*`, `Write-BISFLog`, …) | Do not rename without a migration plan |
+
+### What CI runs
+
+| Workflow | Purpose |
+| --- | --- |
+| `markdownlint.yml` | Lint Markdown on PRs; auto-fix on push to default branches |
+| `validate-scripts.yml` | PSScriptAnalyzer (Error severity) and variable PascalCase check on `Framework/` |
+| `codeql-powershell.yml` | Experimental Microsoft PowerShell CodeQL; uploads SARIF when code scanning is enabled |
+| `dependabot.yml` + `dependabot-auto-merge.yml` | Daily GitHub Actions updates; squash auto-merge when checks pass |
+| `update-tool-pins.yml` | Weekly bump of PSScriptAnalyzer / CodeQL PowerShell pins in `.github/tool-versions.env` |
+
+Shared non-Action pins live in [`.github/tool-versions.env`](tool-versions.env). Refresh them locally
+with `.\tools\Update-BISFToolPins.ps1`.
+
+CodeQL SARIF upload requires GitHub code scanning / Advanced Security on the repository. The
+workflow still uploads a SARIF artifact when available.
+
+For full automation on the GitHub repo: enable **Allow auto-merge**, and optionally add an
+`AUTOMATION_TOKEN` secret (PAT with `contents` + `pull-requests`) so tool-pin PRs trigger CI
+and auto-merge. Dependabot Action PRs do not need that secret.
+
+## Making changes
+
+1. Create a topic branch from the default branch (for example `develop` or `master`—match the
+   repo default). Avoid committing directly to the default branch.
+2. Prefer small, focused commits that follow existing Framework style and PascalCase variable naming.
+3. Keep preparation and personalization scripts in their existing numbered folders.
+4. Do not rename public functions or ADMX-backed identifiers without a clear migration plan.
+5. Run `.\tools\Test-BISFVariableCasing.ps1 -ChangedOnly` before opening a PR that touches Framework scripts.
+6. Check whitespace before committing: `git diff --check`.
+
+### Custom scripts
+
+Drop site-specific logic into:
+
+- `Framework/SubCall/Preparation/Custom/`
+- `Framework/SubCall/Personalization/Custom/`
+
+Use [Framework/SubCall/Template/BISF_TEMPLATE.ps1](../Framework/SubCall/Template/BISF_TEMPLATE.ps1)
+as a starting point when adding new scripts.
+
+## Pull requests
+
+1. Push your topic branch to your fork.
+2. Open a pull request against the upstream default branch.
+3. Fill out the pull request template.
+4. Ensure CI is green (markdownlint, validate-scripts, CodeQL where applicable).
+5. Link related issues when possible.
+
+## Documentation updates
+
+Doc fixes and clarifications are welcome. Prefer Keep a Changelog style entries in
+`CHANGELOG.md` under `[Unreleased]` when behavior or public docs change.
+
+## Additional resources
+
+- [Project README](../README.md)
+- [EUCweb documentation](https://eucweb.com/doc/bis-f-1912)
+- [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)
+- [Fork a repo](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
