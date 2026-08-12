@@ -34,9 +34,7 @@ Begin {
 	$ServiceName = '<ServiceName>'
 	# Optional ADMX gate (replace <XX> with the policy suffix):
 	# $VarCLI = $LIC_BISF_CLI_<XX>
-}
 
-Process {
 	####################################################################
 	####### functions #####
 	####################################################################
@@ -46,25 +44,28 @@ Process {
 		[OutputType([bool])]
 		param()
 
-		if (-not $PSCmdlet.ShouldProcess($Product, 'Run product action')) {
-			return $true
-		}
+		end {
+			if (-not $PSCmdlet.ShouldProcess($Product, 'Run product action')) {
+				return $true
+			}
 
-		# Prep: typically Invoke-BISFService -Action Stop
-		# Pers: typically Invoke-BISFService -Action Start
-		$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
-		if ($Svc -eq $true) {
-			Invoke-BISFService -ServiceName $ServiceName -Action Stop
-			return $true
-		}
+			# Prep: typically Invoke-BISFService -Action Stop
+			# Pers: typically Invoke-BISFService -Action Start
+			$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
+			if ($Svc -eq $true) {
+				Invoke-BISFService -ServiceName $ServiceName -Action Stop
+				return $true
+			}
 
-		Write-BISFLog -Msg "Service $ServiceName not found for $Product" -Type W
-		return $false
+			Write-BISFLog -Msg "Service $ServiceName not found for $Product" -Type W
+			return $false
+		}
 	}
 
 	####### end functions #####
+}
 
-
+Process {
 	#### Main Program
 
 	# Optional ADMX skip (uncomment when $VarCLI is set in Begin):
