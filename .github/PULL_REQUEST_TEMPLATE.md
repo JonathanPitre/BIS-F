@@ -1,29 +1,39 @@
-Thanks for submitting a pull request! Please provide enough information so that others can review your pull request:
+# Pull request
 
-**Summary**
+Thanks for contributing to BIS-F. Fill in the sections below so reviewers can evaluate the change quickly.
 
-<!-- Summary of the PR -->
+## Summary
 
-This PR fixes/implements the following **bugs/features**
+<!-- What does this PR change, and why? -->
 
-* [ ] Bug 1
-* [ ] Bug 2
-* [ ] Feature 1
-* [ ] Feature 2
-* [ ] Breaking changes
+## Type of change
 
-<!-- You can skip this if you're fixing a typo or adding an app to the Showcase. -->
+- [ ] Bug fix
+- [ ] New feature / enhancement
+- [ ] Documentation
+- [ ] Refactor / maintenance
+- [ ] Breaking change (describe impact and migration below)
 
-Explain the **motivation** for making this change. What existing problem does the pull request solve?
+## Motivation
 
-<!-- Example: When "Adding a function to do X", explain why it is necessary to have a way to do X. -->
+<!-- What problem does this solve? Link context if useful. -->
 
-Does the code pass AppVeyor?
-* [ ] Yes
+## Test plan
 
-<!-- Make sure tests pass on AppVeyor before submitting. -->
+<!-- How did you verify the change? Include steps or commands. -->
 
-**Closing issues**
+- [ ] Ran relevant local checks from [CONTRIBUTING.md](CONTRIBUTING.md)
+- [ ] CI checks are green (markdownlint, validate-scripts, CodeQL where applicable)
 
-<!-- Put `closes #XXXX` in your comment to auto-close the issue that your PR fixes (if such). -->
+## Checklist
+
+- [ ] Change is focused and follows existing Framework style
+- [ ] PowerShell variables/parameters use PascalCase (when touching `Framework/`)
+- [ ] Docs / `CHANGELOG.md` updated when behavior or public docs change
+- [ ] No unrelated whitespace or formatting-only noise
+
+## Related issues
+
+<!-- Use a closing keyword so GitHub can auto-close the issue on merge. -->
+
 Fixes #
