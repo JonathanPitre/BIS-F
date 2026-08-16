@@ -10,7 +10,7 @@ on:
       - ".github/tool-versions.env"
       - ".github/workflows/validate-scripts.yml"
   push:
-    branches: [master, main, develop]
+    branches: [master, main, develop, refactor/modernize]
     paths:
       - "Framework/**"
       - ".vscode/PSScriptAnalyzerSettings.psd1"
@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Load tool versions
         shell: pwsh
@@ -43,7 +43,7 @@ jobs:
             ForEach-Object { Add-Content -Path $env:GITHUB_ENV -Value $_.Trim() }
 
       - name: Cache PSScriptAnalyzer module
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.USERPROFILE }}\Documents\PowerShell\Modules\PSScriptAnalyzer
           key: psscriptanalyzer-${{ env.PSSCRIPTANALYZER_VERSION }}-${{ runner.os }}
@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
