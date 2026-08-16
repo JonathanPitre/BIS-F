@@ -306,7 +306,11 @@ You can also enter a custom search folder, e.g. C:\Windows\System32, if you do n
 If you enable this policy setting, Sysprep will be executed if no Image Management software is detected.
 If you disable or do not configure this policy setting, Sysprep will not be executed.
 
-Default arguments to run Sysprep: /generalize /oobe /quiet /quit
+Default Sysprep arguments are chosen automatically from hypervisor detection (Manufacturer/Model):
+- Virtual machine guest: /generalize /oobe /mode:vm /quiet /quit
+- Physical or unknown: /generalize /oobe /quiet /quit
+
+/mode:vm skips hardware detection and is intended for VMs redeployed on the same hypervisor with a matching hardware profile. Use Custom Sysprep Arguments to override the automatic choice.
 
 Enable Custom Sysprep Arguments:
 Override the default arguments
