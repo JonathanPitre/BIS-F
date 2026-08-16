@@ -55,14 +55,8 @@ $allowedExact = [System.Collections.Generic.HashSet[string]]::new([StringCompare
     # Windows PowerShell ISE automatic variable
     'psISE',
 
-    # Legacy shared Framework path / registry globals (underscore contracts)
+    # Legacy shared Framework path globals (underscore contracts)
     'Main_Folder', 'SubCall_Folder', 'LIB_Folder', 'LogFileName',
-    'hklm_software_LIC_CTX_BISF_SCRIPTS', 'hklm_software_Pol_LIC_CTX_BISF_SCRIPTS',
-    'HKLM_Hardware_KeyboardType', 'HKLM_Software_Citrix_fmd',
-    'HKLM_Software_Policies_PVS', 'HKLM_System_CurrentControlSet_Services',
-    'HKLM_System_CCS_Control_LSA', 'HKLM_System_CurrentControlSet_Control_Citrix',
-    'HKLM_Software_MS_NET_FW_AV', 'HKLM_Software_MS_NET_FW_AV_Domain',
-    'HKLM_Software_MS_NET_FW_AV_Standard', 'HKLM_Software_MS_NET_FW_AV_Public',
 
     # Common env-driven / special names referenced as variables
     '_'
@@ -72,11 +66,6 @@ $allowedPrefixes = @(
     'LIC_BISF_',
     'CHK_',
     'DST_',
-    'hklm_',
-    'HKLM_',
-    'HKCU_',
-    'hku_',
-    'cu_',
     'AppLay'
 )
 
