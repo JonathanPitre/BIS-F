@@ -1,9 +1,13 @@
+# GitHub Actions version updates. On this fork, enable Dependabot version
+# updates in Settings → Advanced Security (a dependabot.yml file alone is not
+# enough). Scans `refactor/modernize` (fork default branch).
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    target-branch: refactor/modernize
     schedule:
-      interval: weekly
+      interval: daily
     open-pull-requests-limit: 10
     labels:
       - dependencies
