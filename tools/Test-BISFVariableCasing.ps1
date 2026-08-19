@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Validates PascalCase PowerShell variable naming in BIS-F Framework scripts.
 
