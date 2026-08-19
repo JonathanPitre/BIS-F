@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Installs recommended VS Code / Cursor extensions for BIS-F development.
 
