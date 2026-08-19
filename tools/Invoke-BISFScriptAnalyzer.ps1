@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Runs PSScriptAnalyzer against BIS-F Framework scripts.
 
