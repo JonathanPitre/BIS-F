@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Refresh CI tool pins in .github/tool-versions.env when newer versions exist.
 
