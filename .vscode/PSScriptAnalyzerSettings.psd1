@@ -1,4 +1,4 @@
-#powershell.scriptAnalysis.settingsPath
+﻿#powershell.scriptAnalysis.settingsPath
 #
 # Use the PowerShell extension setting `powershell.scriptAnalysis.settingsPath`
 # (configured in `.vscode/settings.json`) so this workspace uses these rules.
