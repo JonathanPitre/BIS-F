@@ -4,20 +4,26 @@ on:
   pull_request:
     paths:
       - "Framework/**"
+      - "tools/**"
       - ".vscode/PSScriptAnalyzerSettings.psd1"
-      - "tools/Invoke-BISFScriptAnalyzer.ps1"
-      - "tools/Test-BISFVariableCasing.ps1"
+      - ".editorconfig"
       - ".github/tool-versions.env"
       - ".github/workflows/validate-scripts.yml"
+      - "**/*.ps1"
+      - "**/*.psm1"
+      - "**/*.psd1"
   push:
     branches: [master, main, develop, refactor/modernize]
     paths:
       - "Framework/**"
+      - "tools/**"
       - ".vscode/PSScriptAnalyzerSettings.psd1"
-      - "tools/Invoke-BISFScriptAnalyzer.ps1"
-      - "tools/Test-BISFVariableCasing.ps1"
+      - ".editorconfig"
       - ".github/tool-versions.env"
       - ".github/workflows/validate-scripts.yml"
+      - "**/*.ps1"
+      - "**/*.psm1"
+      - "**/*.psd1"
   workflow_dispatch:
 
 permissions:
@@ -85,3 +91,31 @@ jobs:
         shell: pwsh
         run: |
           & ./tools/Test-BISFVariableCasing.ps1
+
+  utf8-bom:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check UTF-8 BOM (fail on PR / dispatch)
+        if: github.event_name != 'push'
+        shell: pwsh
+        run: |
+          & ./tools/Test-BISFUtf8Bom.ps1
+
+      - name: Fix UTF-8 BOM (push to default branches)
+        if: github.event_name == 'push'
+        shell: pwsh
+        run: |
+          & ./tools/Test-BISFUtf8Bom.ps1 -Fix
+
+      - name: Commit BOM fixes
+        if: github.event_name == 'push'
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "fix: ensure PowerShell scripts use UTF-8 with BOM"
+          file_pattern: "*.ps1 *.psm1 *.psd1"
