@@ -1,4 +1,4 @@
-<#
+﻿<#
 	.SYNOPSIS
 		Prepare SentinelOne Agent for VDI / golden-image sealing
 	.DESCRIPTION
