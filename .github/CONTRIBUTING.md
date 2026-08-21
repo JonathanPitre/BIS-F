@@ -61,6 +61,22 @@ On a PR-style ratchet (added/modified Framework scripts only):
 .\tools\Test-BISFVariableCasing.ps1 -ChangedOnly
 ```
 
+Ensure PowerShell files are **UTF-8 with BOM** (required so Windows PowerShell 5.1
+parses non-ASCII characters correctly):
+
+```powershell
+.\tools\Test-BISFUtf8Bom.ps1
+```
+
+Rewrite any that are missing the BOM:
+
+```powershell
+.\tools\Test-BISFUtf8Bom.ps1 -Fix
+```
+
+Workspace settings and `.editorconfig` set `charset = utf-8-bom` for `*.ps1` /
+`*.psm1` / `*.psd1`. Do not save those files as UTF-8 without BOM.
+
 Settings live in [`.vscode/PSScriptAnalyzerSettings.psd1`](../.vscode/PSScriptAnalyzerSettings.psd1).
 Some rules are excluded because BIS-F intentionally uses legacy patterns: `$Global:` state across
 prep/pers scripts (`PSAvoidGlobalVars`), compatibility cmdlet shims
@@ -82,13 +98,14 @@ Use **PascalCase** for PowerShell variables and parameters (for example `$LogPat
   over `$Main_Folder` in new scripts.
 - New scripts should start from
   [Framework/SubCall/Template/BISF_TEMPLATE.ps1](../Framework/SubCall/Template/BISF_TEMPLATE.ps1).
+- Do not add `.LINK https://eucweb.com` on functions or scripts. The module
+  `HelpInfoURI` in `BISF.psd1` is the single project URL.
 
 **Exceptions** (leave as-is; the casing checker allowlists them):
 
 | Pattern | Why |
 | --- | --- |
 | `$LIC_BISF_*`, `$CHK_*`, `$DST_*` | ADMX / policy / registry value mirrors |
-| Registry path helpers such as `$hklm_software_LIC_CTX_BISF_SCRIPTS` | Shared config contract |
 | Legacy path globals such as `$Main_Folder`, `$SubCall_Folder`, `$LIB_Folder` | Existing shared Framework state |
 | Trivial loop counters (`$i`, `$a`, `$x`) | Idiomatic |
 | Public function names (`Get-BISF*`, `Write-BISFLog`, …) | Do not rename without a migration plan |
@@ -97,10 +114,10 @@ Use **PascalCase** for PowerShell variables and parameters (for example `$LogPat
 
 | Workflow | Purpose |
 | --- | --- |
-| `markdownlint.yml` | Lint Markdown on PRs; auto-fix on push to default branches |
-| `validate-scripts.yml` | PSScriptAnalyzer (Error severity) and variable PascalCase check on `Framework/` |
+| `markdownlint.yml` | Lint Markdown on PRs; auto-fix on push to `master` / `main` / `develop` / `refactor/modernize` |
+| `validate-scripts.yml` | PSScriptAnalyzer (Error severity), variable PascalCase, and UTF-8 BOM check on PowerShell files (auto-fix BOM on push) |
 | `codeql-powershell.yml` | Experimental Microsoft PowerShell CodeQL; uploads SARIF when code scanning is enabled |
-| `dependabot.yml` + `dependabot-auto-merge.yml` | Daily GitHub Actions updates; squash auto-merge when checks pass |
+| `dependabot.yml` + `dependabot-auto-merge.yml` | Daily GitHub Actions updates on the default branch; squash auto-merge when checks pass |
 | `update-tool-pins.yml` | Weekly bump of PSScriptAnalyzer / CodeQL PowerShell pins in `.github/tool-versions.env` |
 
 Shared non-Action pins live in [`.github/tool-versions.env`](tool-versions.env). Refresh them locally
@@ -109,19 +126,24 @@ with `.\tools\Update-BISFToolPins.ps1`.
 CodeQL SARIF upload requires GitHub code scanning / Advanced Security on the repository. The
 workflow still uploads a SARIF artifact when available.
 
-For full automation on the GitHub repo: enable **Allow auto-merge**, and optionally add an
-`AUTOMATION_TOKEN` secret (PAT with `contents` + `pull-requests`) so tool-pin PRs trigger CI
-and auto-merge. Dependabot Action PRs do not need that secret.
+For full automation on this fork:
+
+1. Enable **Dependabot version updates** (Settings → Advanced Security). A `dependabot.yml`
+   file does not turn this on by itself on a fork.
+2. Enable **Allow auto-merge** so `dependabot-auto-merge.yml` can squash-merge when checks pass.
+3. Optionally add an `AUTOMATION_TOKEN` secret (PAT with `contents` + `pull-requests`) so
+   tool-pin PRs trigger CI and auto-merge. Dependabot Action PRs do not need that secret.
 
 ## Making changes
 
-1. Create a topic branch from the default branch (for example `develop` or `master`—match the
-   repo default). Avoid committing directly to the default branch.
+1. Create a topic branch from the default branch (`refactor/modernize` on this fork;
+   `develop` or `master` on other remotes). Avoid committing directly to the default branch.
 2. Prefer small, focused commits that follow existing Framework style and PascalCase variable naming.
 3. Keep preparation and personalization scripts in their existing numbered folders.
 4. Do not rename public functions or ADMX-backed identifiers without a clear migration plan.
 5. Run `.\tools\Test-BISFVariableCasing.ps1 -ChangedOnly` before opening a PR that touches Framework scripts.
-6. Check whitespace before committing: `git diff --check`.
+6. Run `.\tools\Test-BISFUtf8Bom.ps1` (or `-Fix`) so PowerShell files keep UTF-8 with BOM.
+7. Check whitespace before committing: `git diff --check`.
 
 ### Custom scripts
 
