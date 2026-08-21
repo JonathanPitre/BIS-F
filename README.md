@@ -2,7 +2,7 @@
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-5391FE.svg?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
-[![Release](https://img.shields.io/badge/release-7.1912-informational)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-2608.0-informational)](CHANGELOG.md)
 [![Website](https://img.shields.io/badge/docs-eucweb.com-0A66C2)](https://eucweb.com)
 
 Automate **preparation (sealing)** and **personalization** of Windows golden / master
@@ -73,7 +73,7 @@ Custom scripts can be dropped into:
 - **Shared configuration** — export/import ADMX-driven settings (JSON/XML) across layers or images
 - **Third-party integrations**, including:
   - Antivirus / EDR: Microsoft Defender, Symantec Endpoint Protection (Broadcom), Trellix,
-    Sophos, Trend Micro, BlackBerry Cylance, WithSecure, Kaspersky, and others
+    Sophos, Trend Micro, BlackBerry Cylance, CrowdStrike Falcon, WithSecure, Kaspersky, and others
   - Citrix Optimizer, Omnissa OSOT, SDelete, CCleaner, DelProf2, CMTrace
   - FSLogix, Office KMS / Microsoft 365 activation, NVIDIA / Intel graphics VDA support
   - Configuration Manager, SCOM, App-V, Ivanti, OpenText ZENworks, Turbo.net, uberAgent,
@@ -95,48 +95,30 @@ Custom scripts can be dropped into:
 
 ### 📦 Install
 
-There is no packaged installer from this fork yet (the old Chocolatey feed is legacy and will
-not be updated; a **winget** package is planned later). A new compiled build will take time—
-this fork is headed toward a full rewrite that needs substantial testing—so install the
-latest `2608` sources from
-[JonathanPitre/BIS-F](https://github.com/JonathanPitre/BIS-F) with PowerShell.
+There is no packaged MSI/winget installer from this fork yet (the old Chocolatey feed is
+legacy and will not be updated; a **winget** package is planned later). Use
+[`tools/Install-BISF.ps1`](tools/Install-BISF.ps1) to install the latest
+`refactor/modernize` sources from
+[JonathanPitre/BIS-F](https://github.com/JonathanPitre/BIS-F).
 
-Run **as Administrator** (adjust `$InstallRoot` if you prefer another path):
+Run **as Administrator**:
 
 ```powershell
-$ErrorActionPreference = 'Stop'
-$InstallRoot = 'C:\Program Files (x86)\Base Image Script Framework (BIS-F)'
-$ZipUrl = 'https://github.com/JonathanPitre/BIS-F/archive/refs/heads/2608.zip'
-$TempRoot = Join-Path $env:TEMP ('BIS-F-' + [guid]::NewGuid().ToString('N'))
-$ZipPath = Join-Path $TempRoot 'BIS-F.zip'
-$Keep = @('Framework', 'ADMX', 'PrepareBaseImage.cmd', 'LICENSE')
-
-New-Item -ItemType Directory -Path $TempRoot -Force | Out-Null
-Invoke-WebRequest -Uri $ZipUrl -OutFile $ZipPath
-Expand-Archive -Path $ZipPath -DestinationPath $TempRoot -Force
-
-$Extracted = Get-ChildItem -Path $TempRoot -Directory |
-  Where-Object { $_.Name -like 'BIS-F-*' } |
-  Select-Object -First 1
-if (-not $Extracted) { throw 'Could not find extracted BIS-F folder.' }
-
-if (Test-Path -LiteralPath $InstallRoot) {
-  Remove-Item -LiteralPath $InstallRoot -Recurse -Force
-}
-New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
-
-foreach ($Name in $Keep) {
-  $Source = Join-Path $Extracted.FullName $Name
-  if (-not (Test-Path -LiteralPath $Source)) { continue }
-  Copy-Item -LiteralPath $Source -Destination (Join-Path $InstallRoot $Name) -Recurse -Force
-}
-
-Remove-Item -LiteralPath $TempRoot -Recurse -Force
-Write-Host "BIS-F installed to $InstallRoot"
+$Script = Join-Path $env:TEMP 'Install-BISF.ps1'
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/JonathanPitre/BIS-F/refactor/modernize/tools/Install-BISF.ps1' -OutFile $Script
+& $Script
 ```
 
-That keeps only what you need to run and configure BIS-F (`Framework\`, `ADMX\`,
-`PrepareBaseImage.cmd`, and `LICENSE`). Docs, CI, and tooling from the zip are discarded.
+Or from a local clone:
+
+```powershell
+.\tools\Install-BISF.ps1 -SourcePath $PWD
+```
+
+The installer copies `Framework\`, `ADMX\`, `PrepareBaseImage.cmd`, and `LICENSE`, writes
+`HKLM:\SOFTWARE\Login Consultants\BISF` `Path` and `Version` (from `BISF.psd1`), and creates
+an Administrative Tools shortcut to `PrepareBaseImage.cmd` (not shown to standard users).
+Docs, CI, and tooling from the zip are discarded.
 
 Copy `ADMX\` into your `PolicyDefinitions` store when you want GPO-driven automation.
 
