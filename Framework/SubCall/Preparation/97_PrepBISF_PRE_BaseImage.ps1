@@ -15,40 +15,40 @@ param(
 		10.10.2012 MS: Removed slmgr.vbs /rearm - write it into extra script
 		17.10.2012 MS: Removed chkdsk /F - because it would like to run at next start
 		04.02.2013 MS: Added Get-ChildItem -Path $CTX_SYS32_CACHE_PATH -filter * -Recurse | foreach ($_) {remove-item $_.fullname}
-		18.09.2013 MS: Replaced $date with $(Get-date) to get current timestamp at running scriptlines write to the logfile
+		18.09.2013 MS: Replaced $date with $(Get-date) to get current timestamp at running script lines write to the log file
 		18.09.2013 MS: Added startup scheduled task to personalize system
 		17.12.2013 MS: ARP Cache Changes – Windows 2008 / Vista / Windows 7, see http://support.citrix.com/article/ctx127549 for further details"
 		28.01.2014 MS: Added ErrorAction to "Remove-Item -Path '$CTX_SYS32_CACHE_PATH' -Recurse -ErrorAction SilentlyContinue"
 		28.01.2014 MS: Removed ipconfig /release
-		28.01.2014 MS: Changed executionpoliy unrestricted for Line 36
+		28.01.2014 MS: Changed execution policy unrestricted for Line 36
 		11.03.2014 MS: Read language specified adapter name to support mui installations for each customer, thanks to Benny Ruoff
 		18.03.2014 BR: Revisited Script
-		01.04.2014 MS: Added array to remove WindowsUpdateInformations
-		02.04.2014 MS: [array]$PreMSG  = "N"   #<<-- display a messagebox to perform these step, set Y = YES or N = NO
-		02.04.2014 MS: Added Question to run Defrag on Systemdisk
+		01.04.2014 MS: Added array to remove Windows update information
+		02.04.2014 MS: [array]$PreMSG  = "N"   #<<-- display a message box to perform these step, set Y = YES or N = NO
+		02.04.2014 MS: Added Question to run Defrag on system disk
 		02.04.2014 MS: Added Question to run Sysinternals SDelete to zero out empty vDisk areas and reduce storage
-		13.05.2014 MS: Added multihoming support to read adaptername from each network,  see line 80
+		13.05.2014 MS: Added multihoming support to read adapter name from each network,  see line 80
 		13.05.2014 MS: Added PreCLI commands for silent action
-		15.05.2014 MS: Changed console output to get-adaptername, line 91 -> Write-BISFLog -Msg  "Read AdapterName: $element"
-		13.08.2014 MS: Removed $logfile = Set-logFile, it would be used in the 10_XX_LIB_Config.ps1 Script only
-		14.08.2014 MS: Removed CLI-Command to show on console, send to logfile only
+		15.05.2014 MS: Changed console output to Get-AdapterName, line 91 -> Write-BISFLog -Msg  "Read AdapterName: $element"
+		13.08.2014 MS: Removed $LogFile = Set-LogFile, it would be used in the 10_XX_LIB_Config.ps1 Script only
+		14.08.2014 MS: Removed CLI-Command to show on console, send to log file only
 		13.10.2014 MS: Check WSUS Client-Side-Targeting to delete ClientID or set Service to manual
 		09.02.2015 MS: Use NimbleFastReclaim instead of SDelete
 		09.02.2015 JP/MS: Clear the Windows event logs
 		09.02.2015 JP/MS: Added Question to run CCleaner
-		12.12.2015 MS: Added question to run reset perfomance Counters
+		12.12.2015 MS: Added question to run reset performance Counters
 		14.04.2015 MS: Removed defrag, now it performed on the vDisk in the POST Script
 		18.05.2015 MS: Added CLI Switch VERYSILENT handling
-		20.05.2015 MS: Feature 45; W2012 R2 only - fix No remote Desktop Licence Server availible on RD Session Host server 2012
+		20.05.2015 MS: Feature 45; W2012 R2 only - fix No remote Desktop License Server available on RD Session Host server 2012
 		08.06.2015 MS: Executing all queued .NET compilation jobs - Precompiling assemblies with Ngen.exe can improve the startup time for some applications.
-		21.07.2015 BR: Edited Path $Dir_SwDistriPath, attended "Download"
+		21.07.2015 BR: Edited Path $SoftwareDistributionPath, attended "Download"
 		10.08.2015 MS: Bug 62; Added new function Write-ZeroesToFreeSpace instead of NimbleFastReclaim -> buggy on W2012R2
 		11.08.2015 BR: Disable Windows Update Service
 		11.08.2015 MS: Fixed code error at line 98 -> $NgenPath = Get-ChildItem -Path 'c:\windows\Microsoft.NET' -Recurse "ngen.exe" | % {$_.FullName}
 		01.10.2015 MS: Rewritten script to use central BISF function
 		04.11.2015 MS: Added CLI switch -DelAllUsersStartMenu to delete all Objects in C:\ProgramData\Microsoft\Windows\Start Menu\*
 		25.11.2015 MS: Stop DHCP client Service, see https://www.citrix.com/blogs/2015/09/29/pvs-target-devices-the-blue-screen-of-death-rest-easy-we-can-fix-that/
-		25.11.2015 MS: Added clear DHCP entries of Networkadapter, to prevent BlueScreen on some PVS Targetdevices https://www.citrix.com/blogs/2015/09/29/pvs-target-devices-the-blue-screen-of-death-rest-easy-we-can-fix-that/
+		25.11.2015 MS: Added clear DHCP entries of network adapter, to prevent Blue Screen on some PVS target devices https://www.citrix.com/blogs/2015/09/29/pvs-target-devices-the-blue-screen-of-death-rest-easy-we-can-fix-that/
 		25.11.2015 MS: Reset Distributed Transaction Coordinator service if installed
 		15.12.2015 MS: Feature 96; Added VMware Tools optimizations, thx to Ingmar Verheij - http://www.ingmarverheij.com
 		16.12.2015 MS: Feature 99; Added Disable Task offload, thx to Ingmar Verheij - http://www.ingmarverheij.com
@@ -62,7 +62,7 @@ param(
 		16.12.2015 MS: Feature 100; Win8 only, run disk cleanup, thx to Thomas Krampe
 		16.12.2015 MS: Feature 100; Added Disable Data Execution Prevention, Disable Startup Repair option, Disable New Network dialog, Set Power Saving Scheme to High Performance, , thx to Thomas Krampe
 		07.01.2016 MS: Feature 79; Added Optimize-BISFWinSxs to cleanup and reduce WinSxs Folder
-		20.01.2016 MS: Fix for Feature 99; Wrong Dword to completly disable IPv6 - 0x000000FF, thanks to Jonathan Pitre
+		20.01.2016 MS: Fix for Feature 99; Wrong Dword to completely disable IPv6 - 0x000000FF, thanks to Jonathan Pitre
 		20.01.2016 MS: Fix for DelAllUsersStartMenu, typos in variable
 		10.03.2016 MS: Issue 111; use nvspbind.exe to unbind IPV6 from AdapterGuid
 		10.03.2016 MS: Added Delprof2.exe support
@@ -70,34 +70,34 @@ param(
 		24.03.2016 MS: Modified BIS-F scheduled task if even exist, thx to Valentino Pemoni
 		10.11.2016 MS: Added Pre-Commands for Windows Server 2016 and Windows 10
 		11.11.2016 MS: Create-BISFTask running in own function
-		05.12.2016 MS: Bug fix: defrag not identify the right driveletter of the vDisk after P2PVS, if the Drivelabel is empty
+		05.12.2016 MS: Bug fix: defrag not identify the right drive letter of the vDisk after P2PVS, if the drive label is empty
 		05.12.2016 MS: Variables must be cleared after each step, to not store the value in the variable and use them in the next $prepCommand
 		01.13.2017 JP: Fixed the Disk Cleanup/WinSxS functions, added support for Windows 7 and 2008 R2
-		21.02.2017 MS: Create BIS-F Adminshortcut on personal Desktop
+		21.02.2017 MS: Create BIS-F Admin shortcut on personal Desktop
 		06.03.2017 MS: Bug Fix: Detecting WSUS TargetGroup
-		06.03.2017 MS: Get FileVersion of Testpath for 3rd Party Apps
+		06.03.2017 MS: Get file version of test path for 3rd Party apps
 		07.03.2017 JP: Fixed typos and trailing space
 		08.03.2017 MS: Syntax error Line 654: $varCLI = $($prepCommand.CLI)
 		13.03.2017 MS: extend unneeded services for Win10 and Server 2016 to disable
 		13.03.2017 MS: extend unneeded scheduled tasks for Win10 and Server 2016 to disable
 		13.03.2017 MS: Disable Cortana for Win10 and Server 2016
-		16.03.2017 FF: Bugfix for useless Service / Scheduled Task Disable
-		11.04.2017 MS: Bugfix in Line 659 using $prepCommand insted of $PostCommand
+		16.03.2017 FF: Fixed for useless Service / Scheduled Task Disable
+		11.04.2017 MS: Fixed in Line 659 using $prepCommand instead of $PostCommand
 		29.07.2017 MS: add schedule Task "ServerCeipAssistant" to disable, thx to Trentent Tye
-		01.08.2017 MS: 3rd Party tools like sdelete, ccleaner, nvpsbind, delprof2, using custom searchfolder from ADMX if enabled
-		01.08.2017 MS: add Progressbar for .NET Optimization
+		01.08.2017 MS: 3rd Party tools like sdelete, ccleaner, nvpsbind, delprof2, using custom search folder from ADMX if enabled
+		01.08.2017 MS: add progress bar for .NET Optimization
 		02.08.2017 MS: delprof2 - get custom arguments from ADMX or use default value
-		22.08.2017 MS: create or update BIS-F schedule Task to run with highest privileges, thx to Brandon Mitchgell
-		22.08.2017 MS: clenup various directories, like temp, thx to Trentent Tye
-		31.08.2017 MS: Clear all Eventlogs
+		22.08.2017 MS: create or update BIS-F schedule Task to run with highest privileges, thx to Brandon Mitchell
+		22.08.2017 MS: cleanup various directories, like temp, thx to Trentent Tye
+		31.08.2017 MS: Clear all event log files
 		07.11.2017 MS: add $LIC_BISF_3RD_OPT = $false, if vmOSOT or CTXO is enabled and found, $LIC_BISF_3RD_OPT = $true and disable BIS-F own optimizations
 		10.11.2017 MS: Feature: .NET Optimization to run if enabled or not configured in ADMX
-		19.10.2018 MS: Bugfix 71: not to process ANY scheduled task disable actions
-		20.10.2018 MS: Bugfix 56: Office click to run issue after BIS-F seal
+		19.10.2018 MS: Fixed 71: not to process ANY scheduled task disable actions
+		20.10.2018 MS: Fixed 56: Office click to run issue after BIS-F seal
 		31.05.2019 MS: FRQ 92: Server 2019 Support
 		31.05.2019 MS: ENH 105: Keep Windows Administrative Tools in Startmenu
-		21.06.2019 MS: HF 116: During Preparation, BIS-F Shows Versionnumber instead of OSName
-		14.08.2019 MS: FRQ 3 - Remove Messagebox and using default setting if GPO is not configured
+		21.06.2019 MS: HF 116: During Preparation, BIS-F shows version number instead of OS Name
+		14.08.2019 MS: FRQ 3 - Remove message box and using default setting if GPO is not configured
 		17.08.2019 MS: ENH 54: ADMX: Configure BIS-F Desktop Shortcut
 		18.08.2019 MS: ENH 101: check sdelete Version 2.02 or newer, otherwise send out error
 		25.08.2019 MS: FRQ 134: Removing Disable Cortana
@@ -106,7 +106,7 @@ param(
 		03.10.2019 MS: ENH 101 - Use sdelete64.exe on x64 system
 		05.10.2019 MS: ENH 12 - Configure sDelete for different environments
 		05.10.2019 MS: ENH 142 - Remove DirtyShutdown Flag
-		05.10.2019 MS: HF 77 - Remvoing Wsus ClientSide Targeting and reset it during every sealing process
+		05.10.2019 MS: HF 77 - Removing Wsus ClientSide Targeting and reset it during every sealing process
 		05.10.2019 MS: ENH 16 - Add NVIDIA GRID Support for Citrix VDA
 		05.10.2019 MS: ENH 143 - Add Intel Graphics Support for Citrix VDA
 		27.12.2019 MS/MN: HF 159 - C:\Windows\temp not deleted
@@ -123,18 +123,16 @@ param(
 		15.03.2022 MICSWE: Clear EventLog modified, to use Get-WinEvent
 		08.08.2026 JP: Port micswe Get-WinEvent Clear-EventLog (selective; skip whole-branch merge)
 
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
 
 	####################################################################
 	# define environment
-	# Setting default variables ($PSScriptroot/$logfile/$PSCommand,$PSScriptFullname/$scriptlibrary/LogFileName) independent on running script from console or ISE and the powershell version.
+	# Setting default variables ($PSScriptRoot/$LogFile/$PSCommand,$PSScriptFullname/$ScriptLibrary/LogFileName) independent on running script from console or ISE and the powershell version.
 	If ($($host.name) -like "* ISE *") {
 		# Running script from Windows Powershell ISE
-		$PSScriptFullName = $psise.CurrentFile.FullPath.ToLower()
+		$PSScriptFullName = $psISE.CurrentFile.FullPath.ToLower()
 		$PSCommand = (Get-PSCallStack).InvocationInfo.MyCommand.Definition
 	}
 	ELSE {
@@ -150,17 +148,17 @@ Begin {
 	$PreTXT = @()
 	$PreCMD = @()
 	$PreCLI = @()
-	$CTX_SYS32_CACHE_PATH = "C:\Program Files (x86)\Citrix\System32\Cache\*"
-	$REG_hklm_WSUS = "$hklm_software\Microsoft\Windows\CurrentVersion\WindowsUpdate"
-	$REG_HKLM_MS_CU = "$hklm_software\Microsoft\Windows\CurrentVersion"
-	$REG_hklm_Pol_WSUS = "$hklm_software\Policies\Microsoft\Windows\WindowsUpdate"
-	$REG_hku_HP = "$hku_software\Hewlett-Packard\"
-	$Dir_SwDistriPath = "C:\Windows\SoftwareDistribution\Download\*"
-	$File_WindowsUpdateLog = "C:\Windows\WindowsUpdate.log"
-	$Dir_AllUsersStartMenu = "C:\ProgramData\Microsoft\Windows\Start Menu\*"
+	$CtxSys32CachePath = "C:\Program Files (x86)\Citrix\System32\Cache\*"
+	$RegHklmWsus = "$HklmSoftware\Microsoft\Windows\CurrentVersion\WindowsUpdate"
+	$RegHklmMsCu = "$HklmSoftware\Microsoft\Windows\CurrentVersion"
+	$RegHklmPolWsus = "$HklmSoftware\Policies\Microsoft\Windows\WindowsUpdate"
+	$RegHkuHp = "$HkuSoftware\Hewlett-Packard\"
+	$SoftwareDistributionPath = "C:\Windows\SoftwareDistribution\Download\*"
+	$FileWindowsUpdateLog = "C:\Windows\WindowsUpdate.log"
+	$DirAllUsersStartMenu = "C:\ProgramData\Microsoft\Windows\Start Menu\*"
 	$Global:BISFtask = "LIC_BISF_Device_Personalize"
 
-	#Processing CLI commands to get 3rd Party custom searchfolders
+	#Processing CLI commands to get 3rd Party custom search folders
 	#ccleaner
 	IF ($LIC_BISF_CLI_CC_SF -eq "1") { $SearchFoldersCC = $LIC_BISF_CLI_CC_SF_CUS } ELSE { $SearchFoldersCC = "$($env:ProgramFiles)\CCleaner" }
 	#delprof2
@@ -174,55 +172,55 @@ Begin {
 
 	Write-BISFLog -Msg "Preparing Array of PreCommands... please wait" -ShowConsole -Color Cyan
 	# All commands that are used to prepare for building the vDisk
-	$ordercnt = 10
+	$OrderCnt = 10
 	[array]$PrepCommands = @()
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
-		Description = "Delete all Citrix Cached files $CTX_SYS32_CACHE_PATH";
-		Command     = "Remove-Item -Path '$CTX_SYS32_CACHE_PATH' -Recurse -ErrorAction SilentlyContinue"
+		Description = "Delete all Citrix Cached files $CtxSys32CachePath";
+		Command     = "Remove-Item -Path '$CtxSys32CachePath' -Recurse -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
-		Description = "Delete SoftwareDistribution $Dir_SwDistriPath";
-		Command     = "Remove-Item -Path '$Dir_SwDistriPath' -Recurse -ErrorAction SilentlyContinue"
+		Description = "Delete SoftwareDistribution $SoftwareDistributionPath";
+		Command     = "Remove-Item -Path '$SoftwareDistributionPath' -Recurse -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
-		Description = "Delete Windows Update Log $File_WindowsUpdateLog";
-		Command     = "Remove-Item '$File_WindowsUpdateLog' -ErrorAction SilentlyContinue"
+		Description = "Delete Windows Update Log $FileWindowsUpdateLog";
+		Command     = "Remove-Item '$FileWindowsUpdateLog' -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "Y";
 		CLI         = "LIC_BISF_CLI_SM";
 		TestPath    = "";
-		Description = "Delete AllUsers Start Menu $Dir_AllUsersStartMenu ?";
-		Command     = "Get-ChildItem -path '$Dir_AllUsersStartMenu' -Exclude 'Administrative Tools' | remove-item -Force -Recurse"
+		Description = "Delete AllUsers Start Menu $DirAllUsersStartMenu ?";
+		Command     = "Get-ChildItem -path '$DirAllUsersStartMenu' -Exclude 'Administrative Tools' | remove-item -Force -Recurse"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "Y";
 		CLI         = "LIC_BISF_CLI_DP";
@@ -230,10 +228,10 @@ Begin {
 		Description = "Run Delprof2 to deletes inactive user profiles ?";
 		Command     = "$($SearchFoldersDP)\delprof2.exe $($DPargs)"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -241,10 +239,10 @@ Begin {
 		Description = "Purge DNS resolver Cache";
 		Command     = "ipconfig /flushdns"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -252,12 +250,12 @@ Begin {
 		Description = "Purge IP-to-Physical address translation tables Cache (ARP Table)";
 		Command     = "arp -d *"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
 	# ENH 102 - Use CCleaner64.exe on x64 system
 	IF ($OSBitness -eq "32-bit") {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "Y";
 			CLI         = "LIC_BISF_CLI_CC";
@@ -267,8 +265,8 @@ Begin {
 		};
 	}
  ELSE {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "Y";
 			CLI         = "LIC_BISF_CLI_CC";
@@ -277,10 +275,10 @@ Begin {
 			Command     = "Start-BISFProcWithProgBar -ProcPath '$($SearchFoldersCC)\CCleaner64.exe' -Args '/AUTO' -ActText 'CCleaner is running'"
 		};
 	}
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "Y";
 		CLI         = "LIC_BISF_CLI_PF";
@@ -288,10 +286,10 @@ Begin {
 		Description = "Reset Performance Counters";
 		Command     = "lodctr.exe /r"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -299,10 +297,10 @@ Begin {
 		Description = "Clear all event logs";
 		Command     = "'wevtutil el | Foreach-Object {wevtutil cl $_}'"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 	IF ($LIC_BISF_3RD_OPT -eq $false) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
@@ -310,15 +308,15 @@ Begin {
 			Description = "Disabling TCP/IP task offloading";
 			Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'DisableTaskOffload' -Value '1' -Type DWORD"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 	ELSE {
 		Write-BISFLog -Msg "TCP/IP task offloading not optimized from BIS-F, because 3rd Party Optimization is configured" -Type W -ShowConsole -SubMsg
 	}
 
 	IF ($LIC_BISF_3RD_OPT -eq $false) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
@@ -326,15 +324,15 @@ Begin {
 			Description = "Increases the UDP packet size to 1500 bytes for FastSend";
 			Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\afd\Parameters' -Name 'FastSendDatagramThreshold' -Value '1500' -Type DWORD"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 	ELSE {
 		Write-BISFLog -Msg "Increases the UDP packet size to 1500 bytes for FastSend not optimized from BIS-F, because 3rd Party Optimization is configured" -Type W -ShowConsole -SubMsg
 	}
 
 	IF ($LIC_BISF_3RD_OPT -eq $false) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
@@ -342,25 +340,25 @@ Begin {
 			Description = "Set multiplication factor to the default UDP scavenge value (MaxEndpointCountMult)";
 			Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\BFE\Parameters' -Name 'MaxEndpointCountMult' -Value '0x10' -Type DWORD"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 	ELSE {
 		Write-BISFLog -Msg "Set multiplication factor to the default UDP scavenge value (MaxEndpointCountMult) not optimized from BIS-F, because 3rd Party Optimization is configured" -Type W -ShowConsole -SubMsg
 	}
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
 		Description = "Disable Receive Side Scaling (RSS)";
-		Command     = "Start-Process -FilePath 'netsh.exe' -Argumentlist 'int tcp set global rss=disable' -Wait -WindowStyle Hidden"
+		Command     = "Start-Process -FilePath 'netsh.exe' -ArgumentList 'int tcp set global rss=disable' -Wait -WindowStyle Hidden"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "Y";
 		CLI         = "LIC_BISF_CLI_V6";
@@ -368,10 +366,10 @@ Begin {
 		Description = "Disable IPv6 in registry ?";
 		Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\TcpIp6\Parameters' -Name 'DisabledComponents' -Value '0x000000FF' -Type DWORD"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -379,21 +377,21 @@ Begin {
 		Description = "Disable Data Execution Prevention";
 		Command     = "Start-Process 'bcdedit.exe' -Verb runAs -ArgumentList '/set nx AlwaysOff' | Out-Null"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
 		Description = "Disable Startup Repair option";
-		Command     = "Start-Process 'bcdedit.exe' -Verb runAs -ArgumentList '/set {default} bootstatuspolicy ignoreallfailures' | Out-Null"
+		Command     = "Start-Process 'bcdedit.exe' -Verb RunAs -ArgumentList '/set {default} bootstatuspolicy ignoreallfailures' | Out-Null"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -401,10 +399,10 @@ Begin {
 		Description = "Disable New Network dialog";
 		Command     = "Set-ItemProperty -Name NewNetworkWindowOff -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Network' -Type String -Value 0"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -412,59 +410,59 @@ Begin {
 		Description = "Set Power Saving Scheme to High Performance";
 		Command     = "Start-Process 'powercfg.exe' -Verb runAs -ArgumentList '-s 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
 	# ENH 12: Running SDelete during preparation
 	IF ($RunPrepSdelete -eq $true) {
-		IF ($OSBitness -eq "32-bit") { $sdeleteversion = "sdelete.exe" } ELSE { $sdeleteversion = "sdelete64.exe" }
+		IF ($OSBitness -eq "32-bit") { $SdeleteVersion = "sdelete.exe" } ELSE { $SdeleteVersion = "sdelete64.exe" }
 		IF ($LIC_BISF_CLI_SD_SF -eq "1") {
-			$SDeletePath = "$($LIC_BISF_CLI_SD_SF_CUS)\$sdeleteversion"
+			$SDeletePath = "$($LIC_BISF_CLI_SD_SF_CUS)\$SdeleteVersion"
 		}
 		ELSE {
-			$SDeletePath = "C:\Windows\system32\$sdeleteversion"
+			$SDeletePath = "C:\Windows\system32\$SdeleteVersion"
 		}
 		$DiskType = Get-BISFDiskNameExtension
 
 		#During sealing on the BaseImage
 		IF ( ($LIC_BISF_CLI_SD_runBI -eq 1) -and ($CTXAppLayerName -ne "No-ELM") -and ($DiskType -eq "BaseDisk") -or ($DiskType -eq "NoVirtualDisk") ) {
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "$SDeletePath";
 				Description = "SDelete is running to Zero Out Free Space on the Base Image";
-				Command     = "Start-BISFProcWithProgBar -ProcPath '$SDeletePath' -Args '-accepteula -z C:' -ActText 'SDelete is running to Zero Out Free Space on the Base Image'"
+				Command     = "Start-BISFProcWithProgBar -ProcPath '$SDeletePath' -Args '-AcceptEula -z C:' -ActText 'SDelete is running to Zero Out Free Space on the Base Image'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 		}
 
 		#During sealing on the PVS parent Disk (avhd or avhdx)
 		IF ( ($LIC_BISF_CLI_SD_runPVSparentDisk -eq 1) -and ($DiskType -eq "ParentDisk") ) {
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				cli         = "";
 				TestPath    = "$SDeletePath";
 				Description = "SDelete is running to Zero Out Free Space on the PVS parent Disk";
-				Command     = "Start-BISFProcWithProgBar -ProcPath '$SDeletePath' -Args '-accepteula -z C:' -ActText 'SDelete is running to Zero Out Free Space on the PVS parent Disk'"
+				Command     = "Start-BISFProcWithProgBar -ProcPath '$SDeletePath' -Args '-AcceptEula -z C:' -ActText 'SDelete is running to Zero Out Free Space on the PVS parent Disk'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 		}
 
 		#During sealing with Citrix AppLayering outside ELM IF (!($CTXAppLayerName -eq "No-ELM")) {
 		IF ( ($LIC_BISF_CLI_SD_runOutsideELM -eq 1) -and ($CTXAppLayerName -eq "No-ELM") ) {
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				cli         = "";
 				TestPath    = "$SDeletePath";
 				Description = "SDelete is running to Zero Out Free Space with AppLayering Outside ELM";
-				Command     = "Start-BISFProcWithProgBar -ProcPath '$SDeletePath' -Args '-accepteula -z C:' -ActText 'SDelete is running to Zero Out Free Space with AppLayering Outside ELM'"
+				Command     = "Start-BISFProcWithProgBar -ProcPath '$SDeletePath' -Args '-AcceptEula -z C:' -ActText 'SDelete is running to Zero Out Free Space with AppLayering Outside ELM'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 		}
 	}
 
@@ -472,8 +470,8 @@ Begin {
 		Write-BISFLog -Msg "Running Microsoft Azure Active Directory Tasks" -ShowConsole -Color Cyan
 		$DSRegValue = Get-BISFDSRegState -Key "AzureADjoined"
 		IF ($DSRegValue -eq "YES")  {
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "Y";
 				cli         = "LIC_BISF_CLI_MS_AAD_HybridLeaveb";
@@ -481,10 +479,10 @@ Begin {
 				Description = "leave Azure AD Domain ";
 				Command     = "Start-BISFProcWithProgBar -ProcPath '$env:windir\system32\dsregcmd.exe' -Args '/leave' -ActText 'leave Azure AD Domain'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order 		= "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order 		= "$OrderCnt";
 				Enabled 	= "$true";
 				showmessage = "Y";
 				cli 		= "LIC_BISF_CLI_MS_AAD_HybridLeaveb";
@@ -492,7 +490,7 @@ Begin {
 				Description = "Get Azure AD Domain Status";
 				Command 	= "Start-BISFProcWithProgBar -ProcPath '$env:windir\system32\dsregcmd.exe' -Args '/status' -ActText 'Get Azure AD Domain status'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
 		} else {
 			Write-BISFLog -Msg "VM is NOT Azure Active Directory joined"
@@ -505,33 +503,33 @@ Begin {
 
 	IF ($LIC_BISF_CLI_DotNet -eq "YES") {
 
-		$NgenPath = Get-ChildItem -Path 'C:\Windows\Microsoft.NET' -Recurse "ngen.exe" | % { $_.FullName }
-		foreach ($element in $NgenPath) {
-			Write-BISFLog -Msg  "Read Ngen Path: $element"
+		$NgenPath = Get-ChildItem -Path 'C:\Windows\Microsoft.NET' -Recurse "ngen.exe" | ForEach-Object { $_.FullName }
+		foreach ($Element in $NgenPath) {
+			Write-BISFLog -Msg  "Read Ngen Path: $Element"
 
 			### Executing Optimization 1
-			$PrepCommands += [pscustomobject]@{
-				Order = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order = "$OrderCnt";
 				Enabled = "$true";
 				showmessage = "Y";
 				CLI = "LIC_BISF_CLI_NET_OPT1b";
 				TestPath = "";
-				Description = ".NET Optimization 1: $LIC_BISF_CLI_NET_OPT1txt - $element";
-				Command = "Start-BISFProcWithProgBar -ProcPath '$element' -Args '$LIC_BISF_CLI_NET_OPT1args' -ActText '.NET Optimization 1: $LIC_BISF_CLI_NET_OPT1txt - $element'"
+				Description = ".NET Optimization 1: $LIC_BISF_CLI_NET_OPT1txt - $Element";
+				Command = "Start-BISFProcWithProgBar -ProcPath '$Element' -Args '$LIC_BISF_CLI_NET_OPT1args' -ActText '.NET Optimization 1: $LIC_BISF_CLI_NET_OPT1txt - $Element'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
 			### Executing Optimization 2
-			$PrepCommands += [pscustomobject]@{
-				Order = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order = "$OrderCnt";
 				Enabled = "$true";
 				showmessage = "Y";
 				CLI = "LIC_BISF_CLI_NET_OPT2b";
 				TestPath = "";
-				Description = ".NET Optimization 2: $LIC_BISF_CLI_NET_OPT2txt - $element";
-				Command = "Start-BISFProcWithProgBar -ProcPath '$element' -Args '$LIC_BISF_CLI_NET_OPT2args' -ActText '.NET Optimization 2: $LIC_BISF_CLI_NET_OPT2txt - $element'"
+				Description = ".NET Optimization 2: $LIC_BISF_CLI_NET_OPT2txt - $Element";
+				Command = "Start-BISFProcWithProgBar -ProcPath '$Element' -Args '$LIC_BISF_CLI_NET_OPT2args' -ActText '.NET Optimization 2: $LIC_BISF_CLI_NET_OPT2txt - $Element'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
 		}
 
@@ -543,143 +541,143 @@ Begin {
 
 
 		## Read language specified adapter name to support mui installations for each customer
-		$adapter = get-BISFAdapterName
-		foreach ($element in $adapter) {
-			Write-BISFLog -Msg  "Read AdapterName: $element"
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+		$Adapter = Get-BISFAdapterName
+		foreach ($Element in $Adapter) {
+			Write-BISFLog -Msg  "Read AdapterName: $Element"
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "ARP Cache Changes Adapter: $element ... (http://support.citrix.com/article/ctx127549)";
-				Command     = "netsh interface ipv4 set interface ""$element"" basereachable=600000"
+				Description = "ARP Cache Changes Adapter: $Element ... (http://support.citrix.com/article/ctx127549)";
+				Command     = "netsh interface ipv4 set interface ""$Element"" basereachable=600000"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
 		}
 
 		## Read GUID of DHCP Network Adapter and clear DHCP-option, see https://www.citrix.com/blogs/2015/09/29/pvs-target-devices-the-blue-screen-of-death-rest-easy-we-can-fix-that/
-		$adapter = get-BISFAdapterGUID
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$Adapter = Get-BISFAdapterGUID
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
 			TestPath    = "";
 			Description = "Stop DHCP Client Service";
-			Command     = "Stop-Service -Name dhcp -ErrorAction SilentlyContinue"
+			Command     = "Stop-Service -Name DHCP -ErrorAction SilentlyContinue"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
 			TestPath    = "";
-			Description = "Clear NameServer in Registry TCPIP\Parameters";
-			Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'NameServer' -value '' "
+			Description = "Clear DNS Name Server in Registry TCPIP\Parameters";
+			Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'NameServer' -Value '' "
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 
-		foreach ($element in $adapter) {
-			Write-BISFLog -Msg  "Read AdapterGUID: $element"
-			$REG_HKLM_TCPIP_Interfaces_GUID = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\$element"
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+		foreach ($Element in $Adapter) {
+			Write-BISFLog -Msg  "Read AdapterGUID: $Element"
+			$RegHklmTcpipInterfacesGuid = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\$Element"
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear NameServer";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'NameServer' -value '' "
+				Description = "AdapterGUID: $Element - Clear DNS Name Server";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'NameServer' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear Domain";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'Domain' -value '' "
+				Description = "AdapterGUID: $Element - Clear DNS Domain";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'Domain' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear DhcpIPAddress";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'DHCPIPAddress' -value '' "
+				Description = "AdapterGUID: $Element - Clear DHCP IP Address";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'DhcpIPAddress' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear DhcpSubnetmask";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'DhcpSubnetmask' -value '' "
+				Description = "AdapterGUID: $Element - Clear DHCP Subnet Mask";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'DhcpSubnetMask' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear DhcpServer";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'DhcpServer' -value '' "
+				Description = "AdapterGUID: $Element - Clear DHCP Server";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'DhcpServer' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear DhcpNameServer";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'DhcpNameServer' -value '' "
+				Description = "AdapterGUID: $Element - Clear DHCP Name Server";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'DhcpNameServer' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
 				TestPath    = "";
-				Description = "AdapterGUID: $element - clear DhcpDefaultGateway";
-				Command     = "Set-ItemProperty -Path '$REG_HKLM_TCPIP_Interfaces_GUID' -Name 'DhcpDefaultGateway' -value '' "
+				Description = "AdapterGUID: $Element - Clear DHCP Default Gateway";
+				Command     = "Set-ItemProperty -Path '$RegHklmTcpipInterfacesGuid' -Name 'DhcpDefaultGateway' -Value '' "
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "Y";
 				CLI         = "LIC_BISF_CLI_V6";
 				TestPath    = "$($SearchFoldersV6)\nvspbind.exe";
-				Description = "Disable IPv6 on AdapterGUID: $element ?";
-				Command     = "$($SearchFoldersV6)\nvspbind.exe /d ""$element"" ms_tcpip6"
+				Description = "Disable IPv6 on AdapterGUID: $Element ?";
+				Command     = "$($SearchFoldersV6)\nvspbind.exe /d ""$Element"" ms_tcpip6"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 		}
 
 	## reset Distributed Transaction Coordinator service if installed
-	$svc = Test-BISFService -ServiceName "MSDTC"
-	IF ($svc -eq $true) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+	$Svc = Test-BISFService -ServiceName "MSDTC"
+	IF ($Svc -eq $true) {
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
@@ -687,29 +685,29 @@ Begin {
 			Description = "Reset Microsoft Distributed Transaction Service ";
 			Command     = "msdtc.exe -reset"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 
 
-	## vmware tools optimizations
-	$svc = Test-BISFService -ServiceName "vmtools"
-	IF ($svc -eq $true) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+	## VMware Tools optimizations
+	$Svc = Test-BISFService -ServiceName "vmtools"
+	IF ($Svc -eq $true) {
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
 			TestPath    = "";
-			Description = "Hide Vmware Tools icon in systray";
+			Description = "Hide VMware Tools icon in system tray";
 			Command     = "Set-ItemProperty -Path 'HKLM:\SOFTWARE\VMware, Inc.\VMware Tools' -Name 'ShowTray' -Value '0' -Type DWORD"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 
-	$svc = Test-BISFService -ServiceName "vmdebug"
-	IF ($svc -eq $true) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+	$Svc = Test-BISFService -ServiceName "vmdebug"
+	IF ($Svc -eq $true) {
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
@@ -717,52 +715,52 @@ Begin {
 			Description = "Disable VMware debug driver";
 			Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\services\vmdebug' -Name 'Start' -Value '4' -Type DWORD"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 
 
-	## hide PVS status icon
-	IF ($returnTestPVSSoftware -eq "true") {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+	## Hide Citrix Provisioning Services status icon
+	IF ($ReturnTestPVSSoftware -eq "true") {
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
 			TestPath    = "";
-			Description = "Hide PVS Status icon in systray";
+			Description = "Hide Citrix Provisioning Services status icon in system tray";
 			Command     = "New-Item -Path 'HKLM:\SOFTWARE\CITRIX\ProvisioningServices\Status' -Force | out-null; Set-ItemProperty -Path 'HKLM:\SOFTWARE\CITRIX\ProvisioningServices\Status' -Name 'ShowIcon' -Value '0' -Type DWORD"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 
 	}
 
-	## Rmove WSUS ID
+	## Remove WSUS ID
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
-		Description = "Delete WSUS - SusClientId in $REG_hklm_WSUS";
-		Command     = "Remove-ItemProperty -Path '$REG_hklm_WSUS' -Name 'SusClientId' -ErrorAction SilentlyContinue"
+		Description = "Delete WSUS - SusClientId in $RegHklmWsus";
+		Command     = "Remove-ItemProperty -Path '$RegHklmWsus' -Name 'SusClientId' -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
-		Description = "Delete WSUS - SusClientIdValidation in $REG_hklm_WSUS";
-		Command     = "Remove-ItemProperty -Path '$REG_hklm_WSUS' -Name 'SusClientIdValidation' -ErrorAction SilentlyContinue"
+		Description = "Delete WSUS - SusClientIdValidation in $RegHklmWsus";
+		Command     = "Remove-ItemProperty -Path '$RegHklmWsus' -Name 'SusClientIdValidation' -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
@@ -770,14 +768,14 @@ Begin {
 		Description = "Set Windows Update Service to Disabled";
 		Command     = "Set-Service -Name wuauserv -StartupType Disabled -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
 <# 13.01.2019 MS: HF 186 - deletion of C:\Windows\temp without GPO control is not possible
 	$paths = @( "$env:windir\Temp", "$env:temp")
 
 	foreach ($path in $paths) {
-		$PrepCommands += [pscustomobject]@{
-			Order       = "$ordercnt";
+		$PrepCommands += [PSCustomObject]@{
+			Order       = "$OrderCnt";
 			Enabled     = "$true";
 			showmessage = "N";
 			CLI         = "";
@@ -785,23 +783,23 @@ Begin {
 			Description = "Cleaning directory: $path";
 			Command     = "Remove-BISFFolderAndContents -folder_path $path"
 		};
-		$ordercnt += 1
+		$OrderCnt += 1
 	}
 #>
 
-	$PrepCommands += [pscustomobject]@{
-		Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+		Order       = "$OrderCnt";
 		Enabled     = "$true";
 		showmessage = "N";
 		CLI         = "";
 		TestPath    = "";
 		Description = "Remove DirtyShutdown to prevent not correct shutdown after reboot";
-		Command     = "Remove-ItemProperty -Path '$REG_HKLM_MS_CU' -Name 'DirtyShutdown' -ErrorAction SilentlyContinue"
+		Command     = "Remove-ItemProperty -Path '$RegHklmMsCu' -Name 'DirtyShutdown' -ErrorAction SilentlyContinue"
 	};
-	$ordercnt += 1
+	$OrderCnt += 1
 
-	$PrepCommands += [pscustomobject]@{
-            Order       = "$ordercnt";
+	$PrepCommands += [PSCustomObject]@{
+            Order       = "$OrderCnt";
             Enabled     = "$true";
             showmessage = "N";
             CLI         = "";
@@ -809,7 +807,7 @@ Begin {
             Description = "Remove LastAliveStamp to prevent shutdown tracker after reboot";
             Command     = "Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Reliability' -Name 'LastAliveStamp' -ErrorAction SilentlyContinue"
       };
-      $ordercnt += 1
+      $OrderCnt += 1
 
 	IF (($LIC_BISF_CLI_VDA_NVDIAGRID -eq 1) -and ($LIC_BISF_CLI_VDA_INTELGRFX -eq 1)) {
 		Write-BISFLog -Msg "NVIDIA GRID and Intel Graphic can't be enabled at the same time, please check the ADMX configuration!" -ShowConsole -Type E
@@ -826,34 +824,34 @@ Begin {
 				} else {
 					$NvidiaServiceTaskCreated = $true
 				}
-				$svc = Test-BISFService -ServiceName $ServiceName -ProductName $ServiceDisplayName
-				IF ($svc -eq $true) {
+				$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $ServiceDisplayName
+				IF ($Svc -eq $true) {
 					Write-BISFLog -Msg "VDA Version $VDAVersion" -ShowConsole
 					IF ($VDAVersion -le "7.11") {
-						$cmd = "$glbSVCImagePath\bin\Montereyenable.exe" # $glbSVCImagePath is getting from Test-BISFService
+						$Cmd = "$GlbSVCImagePath\bin\Montereyenable.exe" # $glbSVCImagePath is getting from Test-BISFService
 						$args = "-enable -noreset"
 					}
 
 					IF ($VDAVersion -ge "7.12") {
-						$cmd = "$glbSVCImagePath\bin\NVFBCEnable.exe" # $glbSVCImagePath is getting from Test-BISFService
+						$Cmd = "$GlbSVCImagePath\bin\NVFBCEnable.exe" # $glbSVCImagePath is getting from Test-BISFService
 						$args = "-enable -noreset"
 					}
 
 					IF ($VDAVersion -ge "7.33") {
-						$cmd = "C:\Program Files\Citrix\HDX\bin\NVFBCEnable.exe"
+						$Cmd = "C:\Program Files\Citrix\HDX\bin\NVFBCEnable.exe"
 						$args = "-enable -noreset"
 					}
 
-					$PrepCommands += [pscustomobject]@{
-						Order       = "$ordercnt";
+					$PrepCommands += [PSCustomObject]@{
+						Order       = "$OrderCnt";
 						Enabled     = "$true";
 						showmessage = "N";
 						CLI         = "";
-						TestPath    = "$cmd";
-						Description = "Enable NVIDIA GRID with command $cmd $args";
-						Command     = "Start-BISFProcWithProgBar -ProcPath '$cmd' -Args '$args' -ActText 'Enable NVIDIA GRID for VDA Version $VDAVersion'"
+						TestPath    = "$Cmd";
+						Description = "Enable NVIDIA GRID with command $Cmd $args";
+						Command     = "Start-BISFProcWithProgBar -ProcPath '$Cmd' -Args '$args' -ActText 'Enable NVIDIA GRID for VDA Version $VDAVersion'"
 					};
-					$ordercnt += 1
+					$OrderCnt += 1
 					break;
 				}
 				ELSE {
@@ -866,19 +864,19 @@ Begin {
 		}
 
 		IF ($LIC_BISF_CLI_VDA_INTELGRFX -eq 1) {
-			$cmd = "$env:ProgramFiles\Citrix\ICAServices\IntelVirtualDisplayTool.exe"
+			$Cmd = "$env:ProgramFiles\Citrix\ICAServices\IntelVirtualDisplayTool.exe"
 			$args = "-vd enable"
 
-			$PrepCommands += [pscustomobject]@{
-				Order       = "$ordercnt";
+			$PrepCommands += [PSCustomObject]@{
+				Order       = "$OrderCnt";
 				Enabled     = "$true";
 				showmessage = "N";
 				CLI         = "";
-				TestPath    = "$cmd";
-				Description = "Enable Intel graphics with command $cmd $args";
-				Command     = "Start-BISFProcWithProgBar -ProcPath '$cmd' -Args '$args' -ActText 'Enable Intel graphics  for VDA Version $VDAVersion'"
+				TestPath    = "$Cmd";
+				Description = "Enable Intel graphics with command $Cmd $args";
+				Command     = "Start-BISFProcWithProgBar -ProcPath '$Cmd' -Args '$args' -ActText 'Enable Intel graphics  for VDA Version $VDAVersion'"
 			};
-			$ordercnt += 1
+			$OrderCnt += 1
 		}
 	}
 
@@ -890,52 +888,52 @@ Begin {
 	# Prepare System
 	function PreCommand {
 		Write-BISFLog -Msg "Running PreCommands on your Base-Image" -ShowConsole -Color Cyan
-		Foreach ($prepCommand in ($PrepCommands | Sort-Object -Property "Order")) {
-			Write-BISFLog -Msg "Processing Order-Nbr $($prepCommand.Order): $($prepCommand.Description)"
+		Foreach ($PrepCommand in ($PrepCommands | Sort-Object -Property "Order")) {
+			Write-BISFLog -Msg "Processing Order-Nbr $($PrepCommand.Order): $($PrepCommand.Description)"
 			#write-host "TestPath: $($prepCommand.TestPath)" -ForegroundColor White -BackgroundColor Red  #<<< enable for debug only
-			IF ( ($prepCommand.TestPath -eq "" ) -or (Test-Path $($prepCommand.TestPath)) ) {
+			IF ( ($PrepCommand.TestPath -eq "" ) -or (Test-Path $($PrepCommand.TestPath)) ) {
 
-				IF ($($prepCommand.TestPath) -ne "" ) {
-					$Productname = (Get-Item $($prepCommand.TestPath)).Basename
-					$ProductFileVersion = (Get-Item $($prepCommand.TestPath)).VersionInfo.FileVersion
-					Write-BISFLog -Msg "Product $Productname $ProductFileVersion installed" -ShowConsole -Color Cyan
-					IF (($Productname -eq "sdelete") -and ($ProductFileVersion -lt "2.02")) {
-						Write-BISFLog -Msg "WARNING: $Productname $ProductFileVersion is not supported, Please use Version 2.02 or newer !!" -ShowConsole -Type E
+				IF ($($PrepCommand.TestPath) -ne "" ) {
+					$ProductName = (Get-Item $($PrepCommand.TestPath)).Basename
+					$ProductFileVersion = (Get-Item $($PrepCommand.TestPath)).VersionInfo.FileVersion
+					Write-BISFLog -Msg "Product $ProductName $ProductFileVersion installed" -ShowConsole -Color Cyan
+					IF (($ProductName -eq "sdelete") -and ($ProductFileVersion -lt "2.02")) {
+						Write-BISFLog -Msg "WARNING: $ProductName $ProductFileVersion is not supported, Please use Version 2.02 or newer !!" -ShowConsole -Type E
 						Start-Sleep 20
 					}
 
 				}
-				Write-BISFLog -Msg "Configure $($prepCommand.Description)" -ShowConsole -Color DarkCyan -SubMsg
-				# write-host "MessageBox: $($prepCommand.showmessage)" -ForegroundColor White -BackgroundColor Red  #<<< enable for debug only
-				IF ($($prepCommand.showmessage) -eq "N") {
+				Write-BISFLog -Msg "Configure $($PrepCommand.Description)" -ShowConsole -Color DarkCyan -SubMsg
+				# write-host "message box: $($prepCommand.showmessage)" -ForegroundColor White -BackgroundColor Red  #<<< enable for debug only
+				IF ($($PrepCommand.showmessage) -eq "N") {
 					# Write-BISFLog -Msg "$($prepCommand.Command)" -ShowConsole
-					Invoke-Expression $($prepCommand.Command)
+					Invoke-Expression $($PrepCommand.Command)
 				}
 				ELSE {
 					Write-BISFLog -Msg "Check GPO Configuration" -SubMsg -Color DarkCyan
-					$varCLI = Get-Variable -Name $($prepCommand.CLI) -ValueOnly
-					If (($varCLI -eq "YES") -or ($varCLI -eq "NO")) {
-						Write-BISFLog -Msg "GPO Valuedata: $varCLI"
+					$VarCLI = Get-Variable -Name $($PrepCommand.CLI) -ValueOnly
+					If (($VarCLI -eq "YES") -or ($VarCLI -eq "NO")) {
+						Write-BISFLog -Msg "GPO value:: $VarCLI"
 					}
 					ELSE {
 
 						Write-BISFLog -Msg "GPO not configured.. using default setting" -ShowConsole -SubMsg -Color DarkCyan
 						$DefaultValue = "No"
 					}
-					if (($DefaultValue -eq "YES") -or ($varCLI -eq "YES")) {
-						Write-BISFLog -Msg "Running Command $($prepCommand.Command)"
-						Invoke-Expression $($prepCommand.Command)
+					if (($DefaultValue -eq "YES") -or ($VarCLI -eq "YES")) {
+						Write-BISFLog -Msg "Running Command $($PrepCommand.Command)"
+						Invoke-Expression $($PrepCommand.Command)
 					}
 					ELSE {
-						Write-BISFLog -Msg " Skipping Command $($prepCommand.Description)" -ShowConsole -Color DarkCyan -SubMsg
+						Write-BISFLog -Msg " Skipping Command $($PrepCommand.Description)" -ShowConsole -Color DarkCyan -SubMsg
 					}
 				}
 				# these 2 variables must be cleared after each step, to not store the value in the variable and use them in the next $prepCommand
-				$varCLI = @()
+				$VarCLI = @()
 				$PreMsgBox = @()
 			}
 			ELSE {
-				Write-BISFLog -Msg "Product $($prepCommand.TestPath) is NOT installed, neccessary for Order-Nbr $($prepCommand.Order): $($prepCommand.Description)"
+				Write-BISFLog -Msg "Product $($PrepCommand.TestPath) is NOT installed, necessary for Order-Nbr $($PrepCommand.Order): $($PrepCommand.Description)"
 
 			}
 		}
@@ -945,25 +943,25 @@ Begin {
 	function Create-BISFTask {
 		# searching for BISF scheduled task and if from different BIS-F version delete them
 
-		$testBISFtask = schtasks.exe /query /v /FO CSV | ConvertFrom-Csv | where { $_.TaskName -eq "\$BISFtask" }
-		IF (!($testBISFtask)) {
+		$TestBISFtask = schtasks.exe /query /v /FO CSV | ConvertFrom-Csv | Where-Object { $_.TaskName -eq "\$BISFtask" }
+		IF (!($TestBISFtask)) {
 			Write-BISFLog -Msg "Create startup task $BISFtask to personalize System" -ShowConsole -Color Cyan
-			schtasks.exe /create /sc ONSTART /TN "$BISFtask" /IT /RU 'System' /RL HIGHEST /tr "powershell.exe -Executionpolicy unrestricted -file '$LIC_BISF_MAIN_PersScript'" /f | Out-Null
+			schtasks.exe /create /sc ONSTART /TN "$BISFtask" /IT /RU 'System' /RL HIGHEST /tr "powershell.exe -ExecutionPolicy unrestricted -file '$LIC_BISF_MAIN_PersScript'" /f | Out-Null
 		}
 		ELSE {
 			Write-BISFLog -Msg "Task already exists, modify startup task $BISFtask to personalize System" -ShowConsole -Color Cyan
-			schtasks.exe /change /TN "$BISFtask" /RL HIGHEST /tr "powershell.exe -Executionpolicy unrestricted -file '$LIC_BISF_MAIN_PersScript'" | Out-Null
+			schtasks.exe /change /TN "$BISFtask" /RL HIGHEST /tr "powershell.exe -ExecutionPolicy unrestricted -file '$LIC_BISF_MAIN_PersScript'" | Out-Null
 		}
 
 	}
 
 	function Test-DrvLabel {
-		$SysDrive = $env:SystemDrive
-		$Sysdrvlabel = Get-CimInstance -ClassName Win32_Volume -Filter "Driveletter = '$SysDrive' " | % { $_.Label }
+		$SystemDrive = $env:SystemDrive
+		$SystemDriveLabel = Get-CimInstance -ClassName Win32_Volume -Filter "DriveLetter = '$SystemDrive' " | ForEach-Object { $_.Label }
 		$DriveLabel = "OSDisk"
-		IF ($null -eq $Sysdrvlabel) {
-			Write-BISFLog -Msg "DriveLabel for $SysDrive would be set to $DriveLabel" -ShowConsole -Color Cyan
-			Get-Volume | Where-Object {$_.DriveLetter -eq $SysDrive.Substring(0,1)} | Set-Volume -NewFileSystemLabel "$DriveLabel"   
+		IF ($null -eq $SystemDriveLabel) {
+			Write-BISFLog -Msg "DriveLabel for $SystemDrive would be set to $DriveLabel" -ShowConsole -Color Cyan
+			Get-Volume | Where-Object {$_.DriveLetter -eq $SystemDrive.Substring(0,1)} | Set-Volume -NewFileSystemLabel "$DriveLabel"   
 		}
 	}
 
@@ -971,13 +969,15 @@ Begin {
 	function Invoke-DesktopShortcut {
 		IF ($LIC_BISF_CLI_DesktopShortcut -eq "YES") {
 			Write-BISFLog -Msg "Create BIS-F Shortcut on your Desktop" -ShowConsole -Color Cyan
-			$DisplayIcon = $InstallLocation + "Framework\SubCall\Global\BISF.ico"
-			$WshShell = New-Object -comObject WScript.Shell
+			$InstallRoot = $InstallLocation.TrimEnd('\')
+			$DisplayIcon = Join-Path $InstallRoot 'Framework\SubCall\Global\BISF.ico'
+			$TargetPath = Join-Path $InstallRoot 'PrepareBaseImage.cmd'
+			$WshShell = New-Object -ComObject WScript.Shell
 			$Shortcut = $WshShell.CreateShortcut("$Home\Desktop\PrepareBaseImage (BIS-F) Admin Only.lnk")
-			$Shortcut.TargetPath = "$InstallLocation\PrepareBaseImage.cmd"
-			$Shortcut.IconLocation = "$DisplayIcon"
+			$Shortcut.TargetPath = $TargetPath
+			$Shortcut.IconLocation = $DisplayIcon
 			$Shortcut.Description = "Run Base Image Script Framework (Admin Only)"
-			$Shortcut.WorkingDirectory = "$InstallLocation"
+			$Shortcut.WorkingDirectory = $InstallRoot
 			$Shortcut.Save()
 		}
 
@@ -987,28 +987,28 @@ Begin {
 		}
 	}
 
-	function Clear-EventLog {
+	function Clear-BISFEventLogs {
 		# Prefer EventLogSession/Get-WinEvent (micswe); fall back to wevtutil if unavailable
 		try {
-			$eventLog = New-Object -TypeName System.Diagnostics.Eventing.Reader.EventLogSession
-			$logs = Get-WinEvent -ListLog * | ForEach-Object { $_.LogName }
-			$logs | ForEach-Object {
-				Write-BISFLog -Msg "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -Submsg
-				$eventLog.ClearLog($_)
+			$EventLog = New-Object -TypeName System.Diagnostics.Eventing.Reader.EventLogSession
+			$Logs = Get-WinEvent -ListLog * | ForEach-Object { $_.LogName }
+			$Logs | ForEach-Object {
+				Write-BISFLog -Msg "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -SubMsg
+				$EventLog.ClearLog($_)
 			}
 		}
 		catch {
 			Write-BISFLog -Msg "Get-WinEvent clear failed ($($_.Exception.Message)); falling back to wevtutil" -Type W
 			wevtutil.exe el | ForEach-Object {
-				Write-BISFLog -Msg "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -Submsg
+				Write-BISFLog -Msg "Clearing Event-Log $_" -ShowConsole -Color DarkCyan -SubMsg
 				wevtutil.exe cl "$_"
 			}
 		}
 	}
 
-	function Create-AllusersStartmenuPrograms {
-		#bugfix 56: recreate "$Dir_AllUsersStartMenu\Programs" that is necassary for to start Office C2R or other AppX after delete $Dir_AllUsersStartMenu
-		$StartMenuProgramsPath = $Dir_AllUsersStartMenu.Substring(0, $Dir_AllUsersStartMenu.Length - 2) + "\Programs"
+	function Create-AllUsersStartmenuPrograms {
+		#Fixed 56: recreate "$Dir_AllUsersStartMenu\Programs" that is necessary for to start Office C2R or other AppX after delete $Dir_AllUsersStartMenu
+		$StartMenuProgramsPath = $DirAllUsersStartMenu.Substring(0, $DirAllUsersStartMenu.Length - 2) + "\Programs"
 		IF (!(Test-Path "$StartMenuProgramsPath")) {
 			Write-BISFLog -Msg "Create Directory $StartMenuProgramsPath" -ShowConsole -Color Cyan
 			New-Item -ItemType Directory -Path "$StartMenuProgramsPath" | Out-Null
@@ -1089,9 +1089,9 @@ Process {
 	}
 
 	PreCommand
-	Clear-EventLog
+	Clear-BISFEventLogs
 	Test-DrvLabel
-	Create-AllusersStartmenuPrograms
+	Create-AllUsersStartmenuPrograms
 	Create-BISFTask
 	Invoke-DesktopShortcut
 
