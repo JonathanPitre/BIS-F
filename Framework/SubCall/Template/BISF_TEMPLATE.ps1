@@ -14,8 +14,8 @@
 		Preparation typically stops services and clears machine-specific state.
 		Personalization typically creates host IDs and starts services.
 	.EXAMPLE
-		Copy to Framework/SubCall/Preparation/Custom/10_PrepBISF_Contoso.ps1, set $SoftwareNameand
-		$ServiceName, then run Prepare Base Image.
+		Copy to Framework/SubCall/Preparation/Custom/10_PrepBISF_SoftwareName.ps1, set $SoftwareName and
+		$ServiceName, then run PrepareBaseImage.cmd script.
 	.INPUTS
 		None
 	.OUTPUTS
