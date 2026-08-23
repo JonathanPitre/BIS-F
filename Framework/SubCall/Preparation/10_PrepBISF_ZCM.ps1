@@ -8,17 +8,13 @@ param(
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-		Company:  EUCWeb.com
 
 		History:
 		27.05.2015 MS: Script created
 		01.10.2015 MS: Rewritten script with standard .SYNOPSIS, use central BISF function to configure service
-		12.03.2017 MS: Change $tmparray=$LIC_BISF_ZCM_CFG to $tmparray=$LIC_BISF_CLI_ZCM to configure ZCM with ADMX
+		12.03.2017 MS: Change $ZCMCliArgs=$LIC_BISF_ZCM_CFG to $ZCMCliArgs=$LIC_BISF_CLI_ZCM to configure ZCM with ADMX
 		18.02.2020 JK: Fixed Log output spelling
-
-
-	.LINK
-		https://eucweb.com
+		23.08.2026 JP: Honor ADMX POL_ZCM ($LIC_BISF_CLI_ZCM); the 2017 rename never landed. Guard empty args and test service status via Get-Service
 #>
 
 Begin {
@@ -26,22 +22,22 @@ Begin {
 	####################################################################
 	# define environment
 
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 
 	# Product specified
 	$Product = "Novell ZCM Agent"
-	$product_path = $env:zenworks_home
-	$servicename1 = "Novell ZENworks Agent Service"
-	$servicename2 = "Novell Identity Store"
-	$servicename3 = "nzwinvnc"
-	$file1 = "$product_path\logs\preboot\novell-zisdservice.log"
-	$file2 = "DeviceData", "DeviceGUID", "*.sav", "Guid.txt"
-	$file3 = "initial-web-service"
-	$folder1 = "$product_path\cache\zmd\"
-	$reg_string1 = "$hklm_software\Wow6432Node\Novell\ZCM\PreAgent"
-	$reg_string2 = "$hklm_software\Wow6432Node\Novell\ZCM\Remote Management\Agent"
+	$ProductPath = $env:zenworks_home
+	$ServiceName1 = "Novell ZENworks Agent Service"
+	$ServiceName2 = "Novell Identity Store"
+	$ServiceName3 = "nzwinvnc"
+	$File1 = "$ProductPath\logs\preboot\novell-zisdservice.log"
+	$File2 = "DeviceData", "DeviceGUID", "*.sav", "Guid.txt"
+	$File3 = "initial-web-service"
+	$Folder1 = "$ProductPath\cache\zmd\"
+	$RegString1 = "$HklmSoftware\Wow6432Node\Novell\ZCM\PreAgent"
+	$RegString2 = "$HklmSoftware\Wow6432Node\Novell\ZCM\Remote Management\Agent"
 }
 
 Process {
@@ -50,83 +46,94 @@ Process {
 
 	function PrepareAgent {
 
-		If ($servicename1.Status -eq 'Running') {
+		If ((Get-Service -Name $ServiceName1 -ErrorAction SilentlyContinue).Status -eq 'Running') {
 			Write-BISFLog -Msg "$Product Service is running, execute specified zac commands"
-			$tmparray = $LIC_BISF_ZCM_CFG
-			Write-BISFLog -Msg "get username and password from configuration URL"
-			$tmparray = $tmparray.split(" ")
-			$cnt = 0
-			ForEach ($tmp in $tmparray) {
-				IF ($tmp -eq "-u") {
-					$ZCMusrCmd = $tmparray[$cnt]
-					$ZCMusrVal = $tmparray[$cnt + 1]
-					$ZCMusr = $ZCMusrCmd + " " + $ZCMusrVal
-					Write-BISFLog -Msg "ZCM User for CLI command $ZCMusr"
-				}
+			$ZCMCliArgs = $LIC_BISF_CLI_ZCM
+			$ZCMUser = $null
+			$ZCMPassword = $null
+			If ([string]::IsNullOrWhiteSpace($ZCMCliArgs)) {
+				Write-BISFLog -Msg "ADMX POL_ZCM is not configured (LIC_BISF_CLI_ZCM empty); skipping zac unregister" -Type W
+			}
+			Else {
+				Write-BISFLog -Msg "get username and password from configuration URL"
+				$ZCMCliArgs = $ZCMCliArgs.Split(' ')
+				$Cnt = 0
+				ForEach ($Arg in $ZCMCliArgs) {
+					IF ($Arg -eq "-u") {
+						$ZCMUserCmd = $ZCMCliArgs[$Cnt]
+						$ZCMUserVal = $ZCMCliArgs[$Cnt + 1]
+						$ZCMUser = $ZCMUserCmd + " " + $ZCMUserVal
+						Write-BISFLog -Msg "ZCM User for CLI command $ZCMUser"
+					}
 
-				IF ($tmp -eq "-p") {
-					$ZCMpwdCmd = $tmparray[$cnt]
-					$ZCMpwdVal = $tmparray[$cnt + 1]
-					$ZCMpwd = $ZCMpwdCmd + " " + $ZCMpwdVal
-					Write-BISFLog -Msg "ZCM Password for CLI command ********"
+					IF ($Arg -eq "-p") {
+						$ZCMPasswordCmd = $ZCMCliArgs[$Cnt]
+						$ZCMPasswordVal = $ZCMCliArgs[$Cnt + 1]
+						$ZCMPassword = $ZCMPasswordCmd + " " + $ZCMPasswordVal
+						Write-BISFLog -Msg "ZCM Password for CLI command ********"
+					}
+					$Cnt++
 				}
-				$cnt++
+				If ([string]::IsNullOrWhiteSpace($ZCMUser) -or [string]::IsNullOrWhiteSpace($ZCMPassword)) {
+					Write-BISFLog -Msg "ZCM unregister skipped; -u/-p not present in LIC_BISF_CLI_ZCM" -Type W
+				}
 			}
 
-
-			Start-Process "zac" -argumentlist "fsg -d"
-			Start-Process "zac" -argumentlist "unr -f $ZCMusr $ZCMpwd"
-			Start-Process "zac" -argumentlist "cc"
+			Start-Process "zac" -ArgumentList "fsg -d"
+			If (-not [string]::IsNullOrWhiteSpace($ZCMUser) -and -not [string]::IsNullOrWhiteSpace($ZCMPassword)) {
+				Start-Process "zac" -ArgumentList "unr -f $ZCMUser $ZCMPassword"
+			}
+			Start-Process "zac" -ArgumentList "cc"
 
 		}
 		## stop Novell services
-		Invoke-BISFService -ServiceName "$servicename1" -Action Stop
-		Invoke-BISFService -ServiceName "$servicename2" -Action Stop
-		Invoke-BISFService -ServiceName "$servicename3" -Action Stop
+		Invoke-BISFService -ServiceName "$ServiceName1" -Action Stop
+		Invoke-BISFService -ServiceName "$ServiceName2" -Action Stop
+		Invoke-BISFService -ServiceName "$ServiceName3" -Action Stop
 
 
 		#delete needed files and registry entries
-		if (Test-Path -Path $file1 -PathType Leaf) {
-			Write-BISFLog -Msg "delete file $file1"
-			Remove-Item -path "$file1" -force
+		if (Test-Path -Path $File1 -PathType Leaf) {
+			Write-BISFLog -Msg "delete file $File1"
+			Remove-Item -path "$File1" -force
 		}
 		ELSE {
-			Write-BISFLog -Msg "file $file1 NOT exist"
+			Write-BISFLog -Msg "file $File1 NOT exist"
 		}
 
-		foreach ($file in $file2) {
-			if (Test-Path -Path "$product_path\conf\$file" -PathType Leaf) {
-				Write-BISFLog -Msg "delete file $product_path\conf\$file"
-				Remove-Item -path "$product_path\conf\$file" -force
+		foreach ($File in $File2) {
+			if (Test-Path -Path "$ProductPath\conf\$File" -PathType Leaf) {
+				Write-BISFLog -Msg "delete file $ProductPath\conf\$File"
+				Remove-Item -path "$ProductPath\conf\$File" -force
 			}
 			ELSE {
-				Write-BISFLog -Msg "file $product_path\conf\$file does NOT exist"
+				Write-BISFLog -Msg "file $ProductPath\conf\$File does NOT exist"
 			}
 
 		}
-		Write-BISFLog -Msg "remove GUID from $reg_string1"
-		Remove-ItemProperty -Path $reg_string1 -Name "GUID" -force -ErrorAction SilentlyContinue
+		Write-BISFLog -Msg "remove GUID from $RegString1"
+		Remove-ItemProperty -Path $RegString1 -Name "GUID" -force -ErrorAction SilentlyContinue
 
-		Write-BISFLog -Msg "remove all custom entries from $reg_string2"
-		Remove-Item -Path $reg_string2 -Exclude *Default*, *Device* -Recurse -Force -ErrorAction SilentlyContinue
+		Write-BISFLog -Msg "remove all custom entries from $RegString2"
+		Remove-Item -Path $RegString2 -Exclude *Default*, *Device* -Recurse -Force -ErrorAction SilentlyContinue
 
-		Write-BISFLog -Msg "remove all items in folder $folder1"
-		Remove-Item -Path $folder1 -Recurse -Force -ErrorAction SilentlyContinue
+		Write-BISFLog -Msg "remove all items in folder $Folder1"
+		Remove-Item -Path $Folder1 -Recurse -Force -ErrorAction SilentlyContinue
 
 		Write-BISFLog -Msg "Wipes the ZISD data including the ZISD header, see https://www.novell.com/support/kb/doc.php?id=7007665"
-		& "$product_path\bin\preboot\ZISWin.exe" "-w"
+		& "$ProductPath\bin\preboot\ZISWin.exe" "-w"
 
-		if (Test-Path -Path "$product_path\conf\$file3.bak" -PathType Leaf) {
+		if (Test-Path -Path "$ProductPath\conf\$File3.bak" -PathType Leaf) {
 
-			if (Test-Path -Path "$product_path\conf\$file3" -PathType Leaf) {
-				Write-BISFLog -Msg "remove file $product_path\conf\$file3"
-				Remove-Item -path "$product_path\conf\$file3" -force
+			if (Test-Path -Path "$ProductPath\conf\$File3" -PathType Leaf) {
+				Write-BISFLog -Msg "remove file $ProductPath\conf\$File3"
+				Remove-Item -path "$ProductPath\conf\$File3" -force
 			}
-			Write-BISFLog -Msg "rename file $product_path\conf\$file3.bak"
-			Rename-Item -path "$product_path\conf\$file3.bak" -newname "$product_path\conf\$file3" -Force
+			Write-BISFLog -Msg "rename file $ProductPath\conf\$File3.bak"
+			Rename-Item -path "$ProductPath\conf\$File3.bak" -NewName "$ProductPath\conf\$File3" -Force
 		}
 		ELSE {
-			Write-BISFLog -Msg "file $product_path\conf\$file3.bak NOT exist"
+			Write-BISFLog -Msg "file $ProductPath\conf\$File3.bak NOT exist"
 		}
 
 
@@ -134,8 +141,8 @@ Process {
 
 	#### Main Program
 
-	$svc = Test-BISFService -ServiceName "$servicename1" -ProductName "$product"
-	IF ($svc -eq $true) {
+	$Svc = Test-BISFService -ServiceName "$ServiceName1" -ProductName "$Product"
+	IF ($Svc -eq $true) {
 		PrepareAgent
 	}
 
