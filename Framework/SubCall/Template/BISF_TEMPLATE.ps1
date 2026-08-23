@@ -1,86 +1,83 @@
 ﻿<#
 	.SYNOPSIS
-		Prepare or personalize <Product Name> for image management
+		Prepare or personalize a software for BIS-F image management.
 	.DESCRIPTION
 		Shared starting point for BIS-F Preparation and Personalization scripts.
 
 		Copy this file to:
-		- Framework/SubCall/Preparation/Custom/NN_PrepBISF_<Name>.ps1  (seal / golden image)
-		- Framework/SubCall/Personalization/Custom/NN_PersBISF_<Name>.ps1  (first boot)
+		- Framework/SubCall/Preparation/Custom/NN_PrepBISF_{Name}.ps1  (seal / golden image)
+		- Framework/SubCall/Personalization/Custom/NN_PersBISF_{Name}.ps1  (first boot)
 
 		Scripts under Preparation/ and Personalization/ are dot-sourced by the framework
 		after the BISF module is loaded. Use Write-BISFLog (do not Import-Module here).
 
-		Prep typically stops services and clears machine-specific state.
-		Pers typically creates host IDs and starts services.
+		Preparation typically stops services and clears machine-specific state.
+		Personalization typically creates host IDs and starts services.
 	.EXAMPLE
+		Copy to Framework/SubCall/Preparation/Custom/10_PrepBISF_Contoso.ps1, set $SoftwareNameand
+		$ServiceName, then run Prepare Base Image.
+	.INPUTS
+		None
+	.OUTPUTS
+		None
 	.NOTES
-		Author: <Name>
-		Company: EUCWeb.com
+		Author: {Author}
 
 		History:
 		dd.mm.yyyy XX: Script created
-
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
-	$ScriptPath = $MyInvocation.MyCommand.Path
-	$ScriptDir = Split-Path -Parent $ScriptPath
-	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
+	$SoftwareName= 'Software Name'
+	$ServiceName = 'Service Name'
+	# Optional ADMX gate (replace {PolicySuffix} with the policy suffix):
+	# $VarCLI = $LIC_BISF_CLI_{PolicySuffix}
 
-	$Product = '<Product Name>'
-	$ServiceName = '<ServiceName>'
-	# Optional ADMX gate (replace <XX> with the policy suffix):
-	# $VarCLI = $LIC_BISF_CLI_<XX>
-
-	####################################################################
-	####### functions #####
-	####################################################################
-
-	function Invoke-ProductAction {
+	function Invoke-SoftwareAction {
+		<#
+			.SYNOPSIS
+				Runs the software-specific Pre	p or Pers action.
+			.DESCRIPTION
+				Stops or starts the software service. Replace the body for your software.
+				Prep typically stops the service; Pers typically starts it.
+				Call only after Process confirms the software is installed.
+			.EXAMPLE
+				Invoke-SoftwareAction
+				Stops the configured software service when it is installed.
+			.OUTPUTS
+				System.Boolean
+			.NOTES
+				Prep: Invoke-BISFService -Action Stop
+				Pers: Invoke-BISFService -Action Start
+		#>
 		[CmdletBinding(SupportsShouldProcess = $true)]
 		[OutputType([bool])]
 		param()
 
-		end {
-			if (-not $PSCmdlet.ShouldProcess($Product, 'Run product action')) {
-				return $true
-			}
-
-			# Prep: typically Invoke-BISFService -Action Stop
-			# Pers: typically Invoke-BISFService -Action Start
-			$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
-			if ($Svc -eq $true) {
-				Invoke-BISFService -ServiceName $ServiceName -Action Stop
-				return $true
-			}
-
-			Write-BISFLog -Msg "Service $ServiceName not found for $Product" -Type W
-			return $false
+		if (-not $PSCmdlet.ShouldProcess($SoftwareName, 'Run software action')) {
+			return $true
 		}
-	}
 
-	####### end functions #####
+		# Prep: typically Invoke-BISFService -Action Stop
+		# Pers: typically Invoke-BISFService -Action Start
+		Invoke-BISFService -ServiceName $ServiceName -Action Stop
+		return $true
+	}
 }
 
 Process {
-	#### Main Program
-
 	# Optional ADMX skip (uncomment when $VarCLI is set in Begin):
-	# if (($VarCLI -eq 'NO')) {
-	# 	Write-BISFLog -Msg "Skip $Product (ADMX)"
+	# if ($VarCLI -eq 'NO') {
+	# 	Write-BISFLog -Msg "Skip $SoftwareName (ADMX)"
 	# 	return
 	# }
 
-	$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
-	if ($Svc -eq $true) {
-		Write-BISFLog -Msg "Processing $Product" -ShowConsole -Color Cyan
-		$null = Invoke-ProductAction
+	if (Test-BISFService -ServiceName $ServiceName -SoftwareName $SoftwareName) {
+		Write-BISFLog -Msg "Processing $SoftwareName" -ShowConsole -Color Cyan
+		$null = Invoke-SoftwareAction
 	}
 	else {
-		Write-BISFLog -Msg "Product $Product is NOT installed"
+		Write-BISFLog -Msg "$SoftwareName is not installed"
 	}
 }
 
