@@ -2,24 +2,20 @@
 	.SYNOPSIS
 		Prepare PrinterLogic PrinterInstaller
 	.DESCRIPTION
-		Delete PrinterLogic PrinterInstaller logfiles on Base Image
+		Delete PrinterLogic Printer Installer log files on Base Image
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-		Company:  EUCWeb.com
 
 		History:
 		29.07.2017 MS: Script created
 		01.08.2017 JP: Fixed typo on line 36
-
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
-	$Script_Path = $MyInvocation.MyCommand.Path
-	$Script_Dir = Split-Path -Parent $script_path
-	$Script_Name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 	$Product = "PrinterLogic PrinterInstaller Client Launcher"
 	$ServiceName = "PrinterInstallerLauncher"
 	$ProductPath = "$env:WinDir\Temp\PPP"
