@@ -6,14 +6,12 @@
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-	  	Company:  EUCWeb.com
+
 
 	  	History:
 		22.03.2016 MS: Script created
 		18.02.2020 JK: Fixed Log output spelling
 
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
@@ -38,13 +36,13 @@ Process {
 	####################################################################
 
 	function Invoke-TurboSupscriptionUpdate {
-		$varTB = Get-Variable -Name LIC_BISF_TurboRun -ValueOnly
-		Write-BISFLog -Msg "The Turbo Subscription Update will be set to the Value $($varTB) in the registry"
+		$VarTB = Get-Variable -Name LIC_BISF_TurboRun -ValueOnly
+		Write-BISFLog -Msg "The Turbo Subscription Update will be set to the Value $($VarTB) in the registry"
 
-		IF ($varTB -eq "YES") {
+		IF ($VarTB -eq "YES") {
 			Write-BISFLog -Msg "Running Turbo Update Subscription Now"
 			Invoke-Expression (Get-ScheduledTask -TaskPath "\turbo-net\" | Start-ScheduledTask)
-			Show-ProgressBar -CheckProcess "Turbo" -ActivityText "Running Turbo Subscription Update"
+			Show-BISFProgressBar -CheckProcess "Turbo" -ActivityText "Running Turbo Subscription Update"
 		}
 	}
 
