@@ -1,32 +1,29 @@
 ﻿<#
 	.SYNOPSIS
-		Personalize Sophos AntiVirus for Image Managemement Software
+		Personalize Sophos AntiVirus for Image Management Software
 	.DESCRIPTION
 	  	Create HostID based on MACAddress and start services
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-	  	Company:  EUCWeb.com
 
 		History:
 		09.01.2017 MS: Script created
 		18.08.2017 FF: Use $ServiceNameS instead of $ServiceName for first Test-BISFService
 
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 
 	# Product specified
 	$Product = "Sophos AntiVirus"
-	$Inst_path = "$ProgramFilesx86\Sophos\Sophos Anti-Virus"
+	$InstPath = "$ProgramFilesx86\Sophos\Sophos Anti-Virus"
 	$ServiceNames = @("Sophos Agent", "Sophos AutoUpdate Service", "Sophos Message Router")
-	$HostID_Prfx = "00000000-0000-0000-0000-00"
-	$HostID_File = "C:\programdata\Sophos\AutoUpdate\data\machine_ID.txt"
+	$HostIDPrfx = "00000000-0000-0000-0000-00"
+	$HostIDFile = "$env:ProgramData\Sophos\AutoUpdate\data\machine_ID.txt"
 
 }
 
@@ -37,17 +34,17 @@ Process {
 	####################################################################
 
 	function CreateGUID {
-		Write-BISFLog -Msg "GUID Prefix: $HostID_Prfx"
-		$mac = Get-BISFMACAddress
-		$regHostID = $HostID_Prfx + $mac
-		Write-BISFLog -Msg "Write Sophos GUID $regHostID to file $HostID_File"
-		Out-File -Filepath $HostID_File -inputobject "$regHostID" -Encoding default
+		Write-BISFLog -Msg "GUID Prefix: $HostIDPrfx"
+		$Mac = Get-BISFMacAddress
+		$RegHostID = $HostIDPrfx + $Mac
+		Write-BISFLog -Msg "Write Sophos GUID $RegHostID to file $HostIDFile"
+		Out-File -FilePath $HostIDFile -InputObject "$RegHostID" -Encoding default
 	}
 
 	function StartService {
 		ForEach ($ServiceName in $ServiceNames) {
-			$svc = Test-BISFService -ServiceName "$ServiceName"
-			IF ($svc -eq $true) { Invoke-BISFService -ServiceName "$($ServiceName)" -Action Start }
+			$Svc = Test-BISFService -ServiceName "$ServiceName"
+			IF ($Svc -eq $true) { Invoke-BISFService -ServiceName "$($ServiceName)" -Action Start }
 		}
 	}
 
@@ -56,8 +53,8 @@ Process {
 	####################################################################
 
 	#### Main Program
-	$svc = Test-BISFService -ServiceName $ServiceNames[0] -ProductName "$product"
-	IF ($svc -eq $true) {
+	$Svc = Test-BISFService -ServiceName $ServiceNames[0] -ProductName "$Product"
+	IF ($Svc -eq $true) {
 		CreateGUID
 		StartService
 
