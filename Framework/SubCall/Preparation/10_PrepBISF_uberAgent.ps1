@@ -6,7 +6,6 @@
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-	  	Company:  EUCWeb.com
 
 		History:
 		26.04.2016 MZ: Script created
@@ -14,10 +13,8 @@
 		12.01.2017 MS: Added IF (Test-Path $reg_Product_Key) before continue
 		18.01.2017 JP: Fixed typo in product variable
 		28.01.2017 MS: typo in $PSScriptName = [System.IO.Path]::GetFileName($PSScriptFullName)
-		03.10.2019 MS: HF 138 - din't change the startuptype to automatic
+		03.10.2019 MS: HF 138 - didn't change the startup type to automatic
 
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
@@ -26,19 +23,19 @@ Begin {
 	$PSScriptName = [System.IO.Path]::GetFileName($PSScriptFullName)
 
 	$Product = "uberAgent"
-	$servicename = "uberAgentSvc"
-	$reg_Product_Key = "$HKLM_sw\vast limits\uberAgent"
+	$ServiceName = "uberAgentSvc"
+	$RegProductKey = "$HklmSoftware\vast limits\uberAgent"
 }
 
 Process {
 
-	$svc = Test-BISFService -ServiceName $servicename -ProductName $product
-	IF ($svc) {
-		Invoke-BISFService -ServiceName $servicename -Action Stop #-StartType automatic # -> HF 138 comment out
+	$Svc = Test-BISFService -ServiceName $ServiceName -ProductName $Product
+	IF ($Svc) {
+		Invoke-BISFService -ServiceName $ServiceName -Action Stop #-StartType automatic # -> HF 138 comment out
 		Write-BISFLog -Msg Clear $Product config
-		IF (Test-Path $reg_Product_Key) {
+		IF (Test-Path $RegProductKey) {
 			& Remove-Item '$reg_Product_Key' -Recurse -Force
-			Write-BISFLog -Msg "Clean $Product registry $reg_Product_Key deleted"
+			Write-BISFLog -Msg "Clean $Product registry $RegProductKey deleted"
 		}
 	}
 }
