@@ -8,17 +8,12 @@
 		13.06.2017 - MT :Initial script created
 	  	30.08.2018 - MT Script update to set the service to Automatic and correct a file deletion issue
 		14.08.2019 - MS: ENH 118: Add Tanium Support into BIS-F
-
-
-.LINK
-	https://eucweb.com
-
 #>
 
 Begin {
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 	$Product = "Tanium"
 	$ServiceName = "Tanium Client"
 }
@@ -72,8 +67,8 @@ Process {
 	}
 	#### Main Program
 
-	$svc = Test-BISFService -ServiceName $ServiceName -ProductName "$product"
-	IF ($svc -eq $true) {
+	$Svc = Test-BISFService -ServiceName $ServiceName -ProductName "$Product"
+	IF ($Svc -eq $true) {
 		Stop-Service
 		Remove-Data
 
