@@ -404,7 +404,7 @@ Process {
 	$Global:ReturnTestXiFrameSoftware = Test-BISFNutanixFrameSoftware -Verbose:$VerbosePreference
 	$Global:ReturnTestParallelsRASSoftware = Test-BISFParallelsRASSoftware -Verbose:$VerbosePreference
 	$Global:ReturnTestWVDSoftware = Test-BISFWVDSoftware -Verbose:$VerbosePreference
-	$Global:ReturnRequestSysprep = Request-BISFSysprep -Verbose:$VerbosePreference
+	$Global:ReturnSetSysprep = Set-BISFSysprep -Verbose:$VerbosePreference
 	$Global:DiskMode = Get-BISFDiskMode -Verbose:$VerbosePreference
 	$Global:BootMode = Get-BISFBootMode
 
