@@ -13,13 +13,10 @@
 	.EXAMPLE
 	.NOTES
 		Author: Jonathan Pitre
-		Company: EUCWeb.com
+
 
 		History:
-		08.08.2026 JP: Script created for fork branch 2608
-
-	.LINK
-		https://eucweb.com
+		08.08.2026 JP: Script created for fork branch refactor/modernize
 	.LINK
 		https://docs.rapid7.com/insight-agent/virtualization
 	.LINK
