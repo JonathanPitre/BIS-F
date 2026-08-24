@@ -5,7 +5,7 @@
 	.EXAMPLE
 	.NOTES
 		Author:         Matthias Schlimm
-		Company:  EUCWeb.com
+
 
 		History:
 		03.06.2015 MS: Initial script development
@@ -16,21 +16,19 @@
 		03.10.2019 MS: ENH 141 - FSLogix App Masking URL Rule Files
 		03.10.2019 MS: ENH 140 - cleanup redirected CloudCache empty directories
 		13.02.2020 JK: Fixed Log output spelling
-		05.12.2020 MS: HF 294 - using registry policy vlaue from $LIC_BISF_CLI_RS to get the central rules share
+		05.12.2020 MS: HF 294 - using registry policy value from $LIC_BISF_CLI_RS to get the central rules share
 
-	.LINK
-		https://eucweb.com
 #>
 Begin {
 	$ErrorActionPreference = "SilentlyContinue"
 
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 	$Product = "FSLogix Apps"
-	$product_path = "${env:ProgramFiles}\FSLogix\Apps"
-	$servicename = "FSLogix Apps Services"
-	$FSXrulesDest = "$product_path\Rules"
+	$ProductPath = "${env:ProgramFiles}\FSLogix\Apps"
+	$ServiceName = "FSLogix Apps Services"
+	$FSXrulesDest = "$ProductPath\Rules"
 	$FSXfiles2Copy = @("*.fxr", "*.fxa", "*.xml")
 }
 
@@ -41,50 +39,50 @@ Process {
 		$ErrorActionPreference = "Stop"
 		IF (!([string]::IsNullOrEmpty($LIC_BISF_CLI_RS))) {
 			If (Test-Path -Path $LIC_BISF_CLI_RS) {
-				Write-Log -Msg "Starting copy of $Product Rules & Assignment files" -showConsole -Color Cyan
+				Write-BISFLog -Msg "Starting copy of $Product Rules & Assignment files" -showConsole -Color Cyan
 				ForEach ($FileCopy in $FSXfiles2Copy) {
-					Write-Log -Msg "Copy $Product $FileCopy files"
+					Write-BISFLog -Msg "Copy $Product $FileCopy files"
 					Copy-Item -Path "$LIC_BISF_CLI_RS\*" -Filter "$FileCopy" -Destination "$FSXrulesDest"
 				}
 			}
 			ELSE {
 				$ErrorActionPreference = "Continue"
-				Write-Log -Msg "$Product Central Rules Share '$LIC_BISF_CLI_RS' is not accessible or user '$cu_user' does not have enough rights!" -Type W -ShowConsole
+				Write-BISFLog -Msg "$Product Central Rules Share '$LIC_BISF_CLI_RS' is not accessible or user '$CurrentUser' does not have enough rights!" -Type W -ShowConsole
 			}
 		}
 		ELSE {
 			$ErrorActionPreference = "Continue"
-			Write-Log -Msg "No $Product Central Rules Share defined, didn't copy files!" -Type W
+			Write-BISFLog -Msg "No $Product Central Rules Share defined, didn't copy files!" -Type W
 		}
 	}
 
 	Function Clear-RedirectedCloudCache {
-		Write-Log -Msg "Processing $Product CloudCache" -ShowConsole -Color Cyan
-		$frxreg = "HKLM:\SYSTEM\CurrentControlSet\Services\frxccds\Parameters"
-		$FRXProxyDirectory = (Get-ItemProperty $frxreg -ErrorAction SilentlyContinue).ProxyDirectory
-		$FRXWriteCacheDirectory = (Get-ItemProperty $frxreg -ErrorAction SilentlyContinue).WriteCacheDirectory
+		Write-BISFLog -Msg "Processing $Product CloudCache" -ShowConsole -Color Cyan
+		$FrxReg = "HKLM:\SYSTEM\CurrentControlSet\Services\frxccds\Parameters"
+		$FRXProxyDirectory = (Get-ItemProperty $FrxReg -ErrorAction SilentlyContinue).ProxyDirectory
+		$FRXWriteCacheDirectory = (Get-ItemProperty $FrxReg -ErrorAction SilentlyContinue).WriteCacheDirectory
 		$FRXDirectories = @("$FRXProxyDirectory", "$FRXWriteCacheDirectory")
 		ForEach ($FRXDir in $FRXDirectories) {
-			Write-Log -Msg "Processing $FRXDir" -ShowConsole -Color DarkCyan -SubMsg
+			Write-BISFLog -Msg "Processing $FRXDir" -ShowConsole -Color DarkCyan -SubMsg
 			IF (Test-Path $FRXDir -PathType Leaf) {
 				$FRXDrive = $FRXDir.substring(0, 2)
 				IF ($FRXDrive -ne $env:SystemDrive) {
-					Write-Log -Msg "Drive is different from the System Drive, cleanup now" -ShowConsole -Color DarkCyan -SubMsg
+					Write-BISFLog -Msg "Drive is different from the System Drive, cleanup now" -ShowConsole -Color DarkCyan -SubMsg
 					Remove-Item "$FRXDir\*" -recurse
 				}
 			}
 			ELSE {
-				Write-Log -Msg "Directory $FRXDir does not exist"
+				Write-BISFLog -Msg "Directory $FRXDir does not exist"
 			}
 			ELSE {
-				Write-Log -Msg "Drive is not different from System Drive, skipping" -ShowConsole -Color DarkCyan -SubMsg
+				Write-BISFLog -Msg "Drive is not different from System Drive, skipping" -ShowConsole -Color DarkCyan -SubMsg
 			}
 		}
 	}
 
 
-	$svc = Test-BISFService -ServiceName "$servicename" -ProductName "$product"
-	IF ($svc) {
+	$Svc = Test-BISFService -ServiceName "$ServiceName" -ProductName "$Product"
+	IF ($Svc) {
 		Copy-FSXRules
 		Clear-RedirectedCloudCache
 	}
