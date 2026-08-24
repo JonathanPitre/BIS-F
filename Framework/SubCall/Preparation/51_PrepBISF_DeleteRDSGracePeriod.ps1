@@ -6,28 +6,24 @@
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-		Company:  EUCWeb.com
 
 		History:
 		14.04.2016 BR: Script created
 		17.06.2016 BR: Added Filter for Operating System Type
 		31.07.2020 MS: HF 268 - Using SID to translate it to the real name to support MUI Systems
-
-	.LINK
-		https://eucweb.com
 #>
 
 Begin {
 	$RootBISFFolder = Split-Path (Split-Path $LIC_BISF_MAIN_PersScript)
 	$Product = $FrameworkName
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 
-	function enable-privilege {
+	function Enable-Privilege {
 		param(
-			## The privilege to adjust. This set is taken from
-			## http://msdn.microsoft.com/en-us/library/bb530716(VS.85).aspx
+			# The privilege to adjust. This set is taken from
+			# https://msdn.microsoft.com/en-us/library/bb530716(VS.85).aspx
 			[ValidateSet(
 				"SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
 				"SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
@@ -41,14 +37,14 @@ Begin {
 				"SeTakeOwnershipPrivilege", "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
 				"SeUndockPrivilege", "SeUnsolicitedInputPrivilege")]
 			$Privilege,
-			## The process on which to adjust the privilege. Defaults to the current process.
+			# The process on which to adjust the privilege. Defaults to the current process.
 			$ProcessId = $pid,
-			## Switch to disable the privilege, rather than enable it.
+			# Switch to disable the privilege, rather than enable it.
 			[Switch] $Disable
 		)
 
-		## Taken from P/Invoke.NET with minor adjustments.
-		$definition = @'
+		# Taken from P/Invoke.NET with minor adjustments.
+		$Definition = @'
 	 using System;
 	 using System.Runtime.InteropServices;
 
@@ -98,49 +94,49 @@ Begin {
 	 }
 '@
 
-		$processHandle = (Get-Process -id $ProcessId).Handle
-		$type = Add-Type $definition -PassThru
-		$type[0]::EnablePrivilege($processHandle, $Privilege, $Disable)
+		$ProcessHandle = (Get-Process -id $ProcessId).Handle
+		$Type = Add-Type $Definition -PassThru
+		$Type[0]::EnablePrivilege($ProcessHandle, $Privilege, $Disable)
 	}
 }
 
 Process {
 
 	if ((Get-CimInstance -ClassName Win32_OperatingSystem).ProductType -eq "3") {
-		#Adjust current uSer privilegs
-		enable-privilege SeTakeOwnershipPrivilege
+		# Adjust current uSer privileges
+		Enable-Privilege SeTakeOwnershipPrivilege
 
-		#Take Ownership of Registry Key
-		$key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, [System.Security.AccessControl.RegistryRights]::takeownership)
-		if($null -eq $key) {
+		# Take Ownership of Registry Key
+		$Key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, [System.Security.AccessControl.RegistryRights]::takeownership)
+		if($null -eq $Key) {
 			Write-BISFLog "Registry key SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod was not yet created. It will be created as soon as a user logs on. Reset will not be required."
 			return
 		}
-		$acl = $key.GetAccessControl([System.Security.AccessControl.AccessControlSections]::None)
-		$SID = "S-1-5-32-544" #Builtin\Admnistrators
-		$objSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
-		$objUser = $objSID.Translate([System.Security.Principal.NTAccount])
-		$localname = $objUser.Value
-		$me = [System.Security.Principal.NTAccount]$localname
-		$acl.SetOwner($me)
-		$key.SetAccessControl($acl)
+		$Acl = $Key.GetAccessControl([System.Security.AccessControl.AccessControlSections]::None)
+		$SID = "S-1-5-32-544" # Builtin\Administrators
+		$ObjSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
+		$ObjUser = $ObjSID.Translate([System.Security.Principal.NTAccount])
+		$LocalName = $ObjUser.Value
+		$Me = [System.Security.Principal.NTAccount]$LocalName
+		$Acl.SetOwner($Me)
+		$Key.SetAccessControl($Acl)
 
-		#Read current ACL and add rule for Builtin\Admnistrators
-		$acl = $key.GetAccessControl()
-		$rule = New-Object System.Security.AccessControl.RegistryAccessRule ($localname, "FullControl", "Allow")
-		$acl.SetAccessRule($rule)
-		$key.SetAccessControl($acl)
-		$key.Close()
+		# Read current ACL and add rule for Builtin\Administrators
+		$Acl = $Key.GetAccessControl()
+		$Rule = New-Object System.Security.AccessControl.RegistryAccessRule ($LocalName, "FullControl", "Allow")
+		$Acl.SetAccessRule($Rule)
+		$Key.SetAccessControl($Acl)
+		$Key.Close()
 
-		#Search Timebomb Key and delete it
-		$items = $null
-		$item = $null
+		# Search Timebomb Key and delete it
+		$Items = $null
+		$Item = $null
 
 		$Items = Get-Item "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod"
-		foreach ($item in $Items) {
-			if ($item.Property -like "*TIMEBOMB*") {
-				Write-BISFLog -Msg "Deleting $($item.Property)"
-				Remove-ItemProperty -path $Item.PSPath -Name $item.Property #-WhatIf
+		foreach ($Item in $Items) {
+			if ($Item.Property -like "*TIMEBOMB*") {
+				Write-BISFLog -Msg "Deleting $($Item.Property)"
+				Remove-ItemProperty -path $Item.PSPath -Name $Item.Property #-WhatIf
 			}
 		}
 	}
