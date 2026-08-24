@@ -1,9 +1,12 @@
 ﻿<#
 	.SYNOPSIS
-		Delete RDS Grace Period Registry Key
+		Reset the Remote Desktop Services licensing grace-period counter.
 	.DESCRIPTION
-		Delete RDS Timebomb Key for never ending grace Period
-	.EXAMPLE
+		On Windows Server, deletes the protected L$RTMTIMEBOMB* value under
+		HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod
+		so a sealed golden image does not ship a depleted 120-day RDS grace period.
+		Windows recreates the value on next boot. This does not replace RDS CALs.
+		Compatible with Windows Server 2016 through 2025 (same registry contract).
 	.NOTES
 		Author: Matthias Schlimm
 
@@ -11,134 +14,89 @@
 		14.04.2016 BR: Script created
 		17.06.2016 BR: Added Filter for Operating System Type
 		31.07.2020 MS: HF 268 - Using SID to translate it to the real name to support MUI Systems
+		24.08.2026 JP: Reuse Enable-BISFPrivilege; target TIMEBOMB values only; Server 2016-2025 same key
 #>
 
 Begin {
-	$RootBISFFolder = Split-Path (Split-Path $LIC_BISF_MAIN_PersScript)
-	$Product = $FrameworkName
-	$ScriptPath = $MyInvocation.MyCommand.Path
-	$ScriptDir = Split-Path -Parent $ScriptPath
-	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
-
-	function Enable-Privilege {
-		param(
-			# The privilege to adjust. This set is taken from
-			# https://msdn.microsoft.com/en-us/library/bb530716(VS.85).aspx
-			[ValidateSet(
-				"SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
-				"SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
-				"SeCreatePermanentPrivilege", "SeCreateSymbolicLinkPrivilege", "SeCreateTokenPrivilege",
-				"SeDebugPrivilege", "SeEnableDelegationPrivilege", "SeImpersonatePrivilege", "SeIncreaseBasePriorityPrivilege",
-				"SeIncreaseQuotaPrivilege", "SeIncreaseWorkingSetPrivilege", "SeLoadDriverPrivilege",
-				"SeLockMemoryPrivilege", "SeMachineAccountPrivilege", "SeManageVolumePrivilege",
-				"SeProfileSingleProcessPrivilege", "SeRelabelPrivilege", "SeRemoteShutdownPrivilege",
-				"SeRestorePrivilege", "SeSecurityPrivilege", "SeShutdownPrivilege", "SeSyncAgentPrivilege",
-				"SeSystemEnvironmentPrivilege", "SeSystemProfilePrivilege", "SeSystemtimePrivilege",
-				"SeTakeOwnershipPrivilege", "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
-				"SeUndockPrivilege", "SeUnsolicitedInputPrivilege")]
-			$Privilege,
-			# The process on which to adjust the privilege. Defaults to the current process.
-			$ProcessId = $pid,
-			# Switch to disable the privilege, rather than enable it.
-			[Switch] $Disable
-		)
-
-		# Taken from P/Invoke.NET with minor adjustments.
-		$Definition = @'
-	 using System;
-	 using System.Runtime.InteropServices;
-
-	 public class AdjPriv
-	 {
-		[DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
-		internal static extern bool AdjustTokenPrivileges(IntPtr htok, bool disall,
-		 ref TokPriv1Luid newst, int len, IntPtr prev, IntPtr relen);
-
-		[DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
-		internal static extern bool OpenProcessToken(IntPtr h, int acc, ref IntPtr phtok);
-		[DllImport("advapi32.dll", SetLastError = true)]
-		internal static extern bool LookupPrivilegeValue(string host, string name, ref long pluid);
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		internal struct TokPriv1Luid
-		{
-		 public int Count;
-		 public long Luid;
-		 public int Attr;
-		}
-
-		internal const int SE_PRIVILEGE_ENABLED = 0x00000002;
-		internal const int SE_PRIVILEGE_DISABLED = 0x00000000;
-		internal const int TOKEN_QUERY = 0x00000008;
-		internal const int TOKEN_ADJUST_PRIVILEGES = 0x00000020;
-		public static bool EnablePrivilege(long processHandle, string privilege, bool disable)
-		{
-		 bool retVal;
-		 TokPriv1Luid tp;
-		 IntPtr hproc = new IntPtr(processHandle);
-		 IntPtr htok = IntPtr.Zero;
-		 retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ref htok);
-		 tp.Count = 1;
-		 tp.Luid = 0;
-		 if(disable)
-		 {
-		tp.Attr = SE_PRIVILEGE_DISABLED;
-		 }
-		 else
-		 {
-		tp.Attr = SE_PRIVILEGE_ENABLED;
-		 }
-		 retVal = LookupPrivilegeValue(null, privilege, ref tp.Luid);
-		 retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
-		 return retVal;
-		}
-	 }
-'@
-
-		$ProcessHandle = (Get-Process -id $ProcessId).Handle
-		$Type = Add-Type $Definition -PassThru
-		$Type[0]::EnablePrivilege($ProcessHandle, $Privilege, $Disable)
-	}
+	$GracePeriodPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod'
+	$GracePeriodSubKey = 'SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod'
+	$AdministratorsSid = 'S-1-5-32-544'
 }
 
 Process {
+	if ($ProductType -ne 3) {
+		Write-BISFLog -Msg "Skipping RDS grace period reset (ProductType $ProductType is not a member server)"
+		return
+	}
 
-	if ((Get-CimInstance -ClassName Win32_OperatingSystem).ProductType -eq "3") {
-		# Adjust current uSer privileges
-		Enable-Privilege SeTakeOwnershipPrivilege
+	Write-BISFLog -Msg "Resetting RDS licensing grace period" -ShowConsole -Color Cyan
 
-		# Take Ownership of Registry Key
-		$Key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, [System.Security.AccessControl.RegistryRights]::takeownership)
-		if($null -eq $Key) {
-			Write-BISFLog "Registry key SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod was not yet created. It will be created as soon as a user logs on. Reset will not be required."
+	$null = Enable-BISFPrivilege -Privilege SeTakeOwnershipPrivilege
+	$null = Enable-BISFPrivilege -Privilege SeRestorePrivilege
+
+	$Key = $null
+	try {
+		$Key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
+			$GracePeriodSubKey,
+			[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,
+			[System.Security.AccessControl.RegistryRights]::TakeOwnership
+		)
+
+		if ($null -eq $Key) {
+			Write-BISFLog -Msg "Registry key $GracePeriodSubKey was not yet created. It will be created when RDS Session Host is used. Reset is not required."
 			return
 		}
-		$Acl = $Key.GetAccessControl([System.Security.AccessControl.AccessControlSections]::None)
-		$SID = "S-1-5-32-544" # Builtin\Administrators
-		$ObjSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
-		$ObjUser = $ObjSID.Translate([System.Security.Principal.NTAccount])
-		$LocalName = $ObjUser.Value
-		$Me = [System.Security.Principal.NTAccount]$LocalName
-		$Acl.SetOwner($Me)
-		$Key.SetAccessControl($Acl)
 
-		# Read current ACL and add rule for Builtin\Administrators
+		$Administrators = (New-Object System.Security.Principal.SecurityIdentifier($AdministratorsSid)).Translate(
+			[System.Security.Principal.NTAccount]
+		)
+
+		$OwnerAcl = $Key.GetAccessControl([System.Security.AccessControl.AccessControlSections]::None)
+		$OwnerAcl.SetOwner($Administrators)
+		$Key.SetAccessControl($OwnerAcl)
+
 		$Acl = $Key.GetAccessControl()
-		$Rule = New-Object System.Security.AccessControl.RegistryAccessRule ($LocalName, "FullControl", "Allow")
+		$Rule = New-Object System.Security.AccessControl.RegistryAccessRule(
+			$Administrators,
+			[System.Security.AccessControl.RegistryRights]::FullControl,
+			[System.Security.AccessControl.AccessControlType]::Allow
+		)
 		$Acl.SetAccessRule($Rule)
 		$Key.SetAccessControl($Acl)
-		$Key.Close()
+	}
+	catch {
+		Write-BISFLog -Msg "Failed to take ownership of $GracePeriodSubKey : $($_.Exception.Message)" -Type W -ShowConsole -SubMsg
+		return
+	}
+	finally {
+		if ($null -ne $Key) {
+			$Key.Close()
+		}
+	}
 
-		# Search Timebomb Key and delete it
-		$Items = $null
-		$Item = $null
-
-		$Items = Get-Item "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\RCM\GracePeriod"
-		foreach ($Item in $Items) {
-			if ($Item.Property -like "*TIMEBOMB*") {
-				Write-BISFLog -Msg "Deleting $($Item.Property)"
-				Remove-ItemProperty -path $Item.PSPath -Name $Item.Property #-WhatIf
+	try {
+		$TsSetting = Get-CimInstance -Namespace 'root/CIMV2/TerminalServices' -ClassName Win32_TerminalServiceSetting -ErrorAction SilentlyContinue
+		if ($null -ne $TsSetting) {
+			$GraceDays = Invoke-CimMethod -InputObject $TsSetting -MethodName GetGracePeriodDays -ErrorAction SilentlyContinue
+			if ($null -ne $GraceDays -and $null -ne $GraceDays.DaysLeft) {
+				Write-BISFLog -Msg "RDS grace period days remaining before reset: $($GraceDays.DaysLeft)" -ShowConsole -Color DarkCyan -SubMsg
 			}
 		}
+	}
+	catch {
+		# Best-effort only; plain member servers may lack TerminalServices WMI
+	}
+
+	$GracePeriodKey = Get-Item -Path $GracePeriodPath
+	$TimebombValues = @($GracePeriodKey.Property | Where-Object { $_ -like '*TIMEBOMB*' })
+	if ($TimebombValues.Count -eq 0) {
+		Write-BISFLog -Msg "No TIMEBOMB value found under $GracePeriodSubKey"
+		return
+	}
+
+	foreach ($ValueName in $TimebombValues) {
+		Write-BISFLog -Msg "Deleting $ValueName" -ShowConsole -Color DarkCyan -SubMsg
+		Remove-ItemProperty -Path $GracePeriodPath -Name $ValueName
 	}
 }
 
