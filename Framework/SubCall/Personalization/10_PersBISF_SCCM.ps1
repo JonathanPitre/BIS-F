@@ -1,6 +1,6 @@
 ﻿<#
     .SYNOPSIS
-        Personalize SCCM Client for Image Managemement Software
+        Personalize SCCM Client for Image Management Software
 	.Description
       	
     .EXAMPLE
@@ -14,19 +14,19 @@
       	Last Change: 26.03.2014 MS: Script created for SCCM 2012 R2
 		Last Change: 14.05.2014 MS: BUG code-error certstore SMS not deleted > & Invoke-Expression 'certutil -delstore SMS "SMS"'
 		Last Change: 11.08.2014 MS: remove Write-Host change to Write-Log
-		Last Change: 13.08.2014 MS: remove $logfile = Set-logFile, it would be used in the 10_XX_LIB_Config.ps1 Script only
+		Last Change: 13.08.2014 MS: remove $LogFile = Set-LogFile, it would be used in the 10_XX_LIB_Config.ps1 Script only
 		Last Change: 19.02.2015 MS: error handling
 		Last Change: 01.10.2015 MS: rewritten script with standard .SYNOPSIS, use central BISF function to configure service
 	.Link
 #>
 
 Begin {
-	$ccm_path = "C:\Windows\CCM"
+	$CcmPath = "C:\Windows\CCM"
 	$PSScriptFullName = $MyInvocation.MyCommand.Path
 	$PSScriptRoot = Split-Path -Parent $PSScriptFullName
 	$PSScriptName = [System.IO.Path]::GetFileName($PSScriptFullName)
 	$Product = "Microsoft SCCM Agent"
-	$servicename = "CcmExec"
+	$ServiceName = "CcmExec"
 }
 
 Process 
@@ -50,11 +50,11 @@ Process
 
 #### Main Program
 
-	$svc = Test-BISFService -ServiceName "$servicename" -ProductName "$product"
-	IF ($svc -eq $true)
+	$Svc = Test-BISFService -ServiceName "$ServiceName" -ProductName "$Product"
+	IF ($Svc -eq $true)
 	{
 		deleteCCMdata
-		Invoke-BISFService -ServiceName "$servicename" -Action Start
+		Invoke-BISFService -ServiceName "$ServiceName" -Action Start
 	}
 }
 
