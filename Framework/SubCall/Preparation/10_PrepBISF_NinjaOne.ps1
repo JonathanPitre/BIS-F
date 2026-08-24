@@ -15,13 +15,10 @@
 	.EXAMPLE
 	.NOTES
 		Author: Jonathan Pitre
-		Company: EUCWeb.com
 
 		History:
-		12.08.2026 JP: Script created for fork branch 2608
+		12.08.2026 JP: Script created for fork branch refactor/modernize
 
-	.LINK
-		https://eucweb.com
 	.LINK
 		https://www.ninjaone.com/docs/endpoint-management/clone-device-with-ninjaone-installed/
 	.LINK
