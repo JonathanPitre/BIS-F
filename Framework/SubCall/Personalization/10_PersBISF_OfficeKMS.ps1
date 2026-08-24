@@ -20,15 +20,13 @@
 		01.08.2020 MS: HF 269 - Office detection takes too long, using reg instead of WMI
 		02.08.2020 MS: HF 270 - PersBISF_Start.ps1 Script Causing all installed Applications to Reconfigure
 
-	.LINK
-        https://eucweb.com
 #>
 
 
 Begin {
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 }
 
 Process {
@@ -37,7 +35,7 @@ Process {
 	$OfficeProducts = @("Microsoft Office Professional Plus","Microsoft Office Standard","Click-to-Run Licensing Component")
 	[array]$OfficeInstallRoot = $null
 	ForEach ($OfficeProduct in $OfficeProducts) {
-        $Office = (Get-BISFSoftwareInfo -Publisher "Microsoft" -Name "$OfficeProduct")[-1] | select DisplayVersion,DisplayName
+        $Office = (Get-BISFSoftwareInfo -Publisher "Microsoft" -Name "$OfficeProduct")[-1] | Select-Object DisplayVersion,DisplayName
 		IF ($null -ne $Office) {
             $OFName = $Office.DisplayName
 		    $OFVersion = $Office.DisplayVersion						#Version : 16.0.4266.1001
@@ -56,7 +54,7 @@ Process {
 			    If ($OfficeInstallRoot -isnot [system.object]) { $OfficeInstallRoot += (Get-ItemProperty -Path Registry::HKLM\SOFTWARE\Microsoft\Office\ClickToRun -Name InstallPath -ErrorAction SilentlyContinue).InstallPath }
 			}
 
-		    Write-BISFLog -Msg "Installpath $OfficeInstallRoot " -ShowConsole -Color DarkCyan -SubMsg
+		    Write-BISFLog -Msg "InstallPath $OfficeInstallRoot " -ShowConsole -Color DarkCyan -SubMsg
 		    $OSPP = Get-ChildItem -Path $OfficeInstallRoot -filter "OSPP.vbs" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 		    Write-BISFLog -Msg "OSPP is installed in $OSPP"
 
