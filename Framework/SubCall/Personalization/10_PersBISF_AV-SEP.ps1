@@ -24,21 +24,20 @@
 		31.08.2015 MS: Fixed 89 - symantec fixes the registry location for the SEP-Client to WOW6432Node, fix in line 31-32 and function SetHostID
 		01.09.2015 MS: Fixed 89 successful tested
 		06.10.2015 MS: rewritten script with standard .SYNOPSIS, central BISF function couldn't used for services, SEP Service must being started with smc.exe
-		09.01.2017 MS: Change code to get Mac address to use function Get-BISFMACAddress
+		09.01.2017 MS: Change code to get Mac address to use function Get-BISFMacAddress
 		01.07.2018 MS: Hotfix 49: After SEP is started with smc.exe, sometimes the service will not be started. Controlled and logged now with Test-BISFServiceState in Line 58
 		18.02.2020 JK: Fixed Log output spelling
 		19.02.2020 MS: HF 212 - SEP duplicate HardwareID - Get-BISFMacAddress returns lower- instead of uppercase MACAddress -> compare HardwareID after ServiceStart
 		14.04.2023 TR: HF 371 - Support both 32 bit and 64 bit locations. Reduce usage of global variables in functions. Use approved verbs.
-
 #>
 
 Begin {
-	# define environment
+	# Define environment
 	$PSScriptFullName = $MyInvocation.MyCommand.Path
 	$PSScriptRoot = Split-Path -Parent $PSScriptFullName
 	$PSScriptName = [System.IO.Path]::GetFileName($PSScriptFullName)
 
-	# define product
+	# Define product
 	$RegSEPString = "Symantec\Symantec Endpoint Protection\SMC\SYLINK\SyLink"	
 	$Reg2Check = "SerialNumber"
 	$RegSEPName = "HardwareID"
@@ -126,7 +125,7 @@ Process {
 		Set-ItemProperty -Path $(Get-SepRegPath) -Name $RegSEPName -Value $RegHostID -ErrorAction SilentlyContinue
 	}
 
-	## set HostID in Registry
+	# Set HostID in Registry
 	function New-SEPHostID {
 		param(
 			[Parameter(Mandatory=$true)]
@@ -154,7 +153,7 @@ Process {
 
 	
 
-	## Start SEP Service
+	# Start SEP Service
 	function Start-SEP 
 	{
 		param(
@@ -173,11 +172,7 @@ Process {
 			Write-BISFLog -Msg "After the AV-Service is started, HardwareID in registry is NOT set correctly: Registry HardwareID $TestHardwareID <-> Defined HardwareID '$RegHostID'" -Type W -SubMsg
 		}
 	}
-	####################################################################
-	#TEST
-	#$global:logFile = "c:\temp\bisf.log"
-	#Import-Module ".\Framework\SubCall\Global\BISF.psd1"
-	#### Main Program
+
 	IF (Test-SepIsInstalled) {
 		Write-BISFLog -Msg "Symantec Endpoint Protection installed" -ShowConsole -Color Cyan
 		$RegHostId = New-SEPHostID -MacAddress $(Get-BISFMacAddress)
