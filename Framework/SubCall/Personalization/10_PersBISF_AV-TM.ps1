@@ -1,42 +1,39 @@
 ﻿<#
 	.SYNOPSIS
-		Personalize TrenMicro OfficeScan  for Image Management Software
+		Personalize TrendMicro OfficeScan for Image Management Software
 	.DESCRIPTION
 		Create HostID based on MACAddress
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
-	  	Company:  EUCWeb.com
 
 		History:
 	  	17.09.2014 MS: Script created
-		10.08.2015 MS: define array for TM services for better scripthandling
-		06.10.2015 MS: rewritten script with standard .SYNOPSIS
-		09.01.2017 MS: change code to get MacAdress to use function Get-BISMACAddress
+		10.08.2015 MS: Define array for TM services for better script handling
+		06.10.2015 MS: Rewritten script with standard .SYNOPSIS
+		09.01.2017 MS: Change code to get MAC Address to use function Get-BISFMacAddress
 		01.08.2017 JS: Added the TmPfw (OfficeScan NT Firewall) service to the array
-		19.02.2020 MS: HF 212 - MACAddress in lowercase with seperated switch to fix HF 137
-		29.05.2020 MS: HF 233 - TrendMicro Apex One Services not startet
-		05.06.2020 MS: HF 233 - Skipping ApexOne, checkout https://github.com/EUCweb/BIS-F/issues/233 for further informations
-	.LINK
-		https://eucweb.com
+		19.02.2020 MS: HF 212 - MACAddress in lowercase with separated switch to fix HF 137
+		29.05.2020 MS: HF 233 - TrendMicro Apex One Services not started
+		05.06.2020 MS: HF 233 - Skipping ApexOne, checkout https://github.com/EUCweb/BIS-F/issues/233 for further information
 #>
 
 
 Begin {
-	$reg_TM_string = "$HKLM_sw_x86\TrendMicro\PC-cillinNTCorp\CurrentVersion"
-	$reg_TM_name = "GUID"
-	$product = "Trend Micro Office Scan"
-	$product1 = "Trend Micro Apex ONE"
+	$RegTMString = "$HklmSoftwareX86\TrendMicro\PC-cillinNTCorp\CurrentVersion"
+	$RegTMName = "GUID"
+	$Product = "Trend Micro Office Scan"
+	$Product1 = "Trend Micro Apex ONE"
 	# The main 4 services are:
 	# - TmListen (OfficeScan NT Listener)
 	# - NTRTScan (OfficeScan NT RealTime Scan)
 	# - TmPfw (OfficeScan NT Firewall)
 	# - TmProxy (OfficeScan NT Proxy Service)
 	$TMServices = @("TmListen", "NTRTScan", "TmProxy", "TmPfw", "TmCCSF", "TMBMServer")
-	$HostID_Prfx = "00000000-0000-0000-0000-"
-	$script_path = $MyInvocation.MyCommand.Path
-	$script_dir = Split-Path -Parent $script_path
-	$script_name = [System.IO.Path]::GetFileName($script_path)
+	$HostIDPrfx = "00000000-0000-0000-0000-"
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	$ScriptDir = Split-Path -Parent $ScriptPath
+	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
 
 }
 
@@ -48,8 +45,8 @@ Process {
 		ForEach ($TMService in $TMServices) {
 			# check if service exist
 
-			$svc = Test-BISFService -ServiceName "$TMService"
-			IF ($svc -eq $true) {
+			$Svc = Test-BISFService -ServiceName "$TMService"
+			IF ($Svc -eq $true) {
 				Invoke-BISFService -ServiceName "$TMService" -Action Start
 			}
 		}
@@ -58,25 +55,25 @@ Process {
 
 	## set HostID in Registry
 	function SetHostID {
-		$mac = Get-BISFMACAddress -ConvertToLower
-		Write-BISFLog -Msg "$reg_SEP_name Prefix: $HostID_Prfx"
-		$regHostID = $HostID_Prfx + $mac
-		Write-BISFLog -Msg "set TrendMicro $reg_TM_name in Registry $regHostID_string..."
-		Set-ItemProperty -Path $reg_TM_string -Name $reg_TM_name -value $regHostID -ErrorAction SilentlyContinue
+		$Mac = Get-BISFMacAddress -ConvertToLower
+		Write-BISFLog -Msg "$RegSEPName Prefix: $HostIDPrfx"
+		$RegHostID = $HostIDPrfx + $Mac
+		Write-BISFLog -Msg "set TrendMicro $RegTMName in Registry $RegHostIDString..."
+		Set-ItemProperty -Path $RegTMString -Name $RegTMName -Value $RegHostID -ErrorAction SilentlyContinue
 	}
 	####################################################################
 
 	#### Main Program
-	$svc = Test-BISFService -ServiceName $TMServices[0] -ProductName "$product"
-	$ApexOne = Test-BISFService -ServiceName $TMServices[5] -ProductName "$product1"
+	$Svc = Test-BISFService -ServiceName $TMServices[0] -ProductName "$Product"
+	$ApexOne = Test-BISFService -ServiceName $TMServices[5] -ProductName "$Product1"
 
 	IF ($ApexOne) {
-		Write-BISFLog -Msg "Skipping $product1 personalization" -Type W -ShowConsole -SubMsg
+		Write-BISFLog -Msg "Skipping $Product1 personalization" -Type W -ShowConsole -SubMsg
 		Write-BISFLog -M Msg "Please Checkout ApexOne Support https://github.com/EUCweb/BIS-F/issues/233 for further information" -Type W -ShowConsole -SubMsg
 		start-sleep 10
 		} ELSE {
 
-		IF ($svc) {
+		IF ($Svc) {
 			# Note that if the services start before the GUID is set it won't register with the OfficeScan Management Server
 			SetHostID
 			StartService
