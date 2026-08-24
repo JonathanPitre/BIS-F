@@ -6,7 +6,6 @@
 	.NOTES
 		Author:         Matthias Schlimm
 
-
 		History:
 		03.06.2015 MS: Initial script development
 		13.08.2015 MS: Copy FSLogix rules and assignment files from central share to the FSLogix Apps rules folder at computer startup
@@ -17,7 +16,6 @@
 		03.10.2019 MS: ENH 140 - cleanup redirected CloudCache empty directories
 		13.02.2020 JK: Fixed Log output spelling
 		05.12.2020 MS: HF 294 - using registry policy value from $LIC_BISF_CLI_RS to get the central rules share
-
 #>
 Begin {
 	$ErrorActionPreference = "SilentlyContinue"
