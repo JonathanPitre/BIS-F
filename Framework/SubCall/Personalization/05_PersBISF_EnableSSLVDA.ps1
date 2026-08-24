@@ -19,6 +19,15 @@
 
 		Skip certificate verification:
 		- Expiration-date checks can be skipped when that validation is not required.
+
+		Firewall:
+		- Uses NetSecurity cmdlets (not netsh). Citrix-named rules are created only when
+		  an equivalent inbound rule (display name, protocol, local port) does not exist.
+		- Non-Citrix firewall rules on the SSL port are never removed.
+
+		TLS minimum version:
+		- Supports SSL 3.0 through TLS 1.3 per Citrix VDA registry values (TLS 1.3 = 5).
+		- TLS 1.3 requires Windows 11 or Windows Server 2022 or later; older builds use TLS 1.2.
 	.EXAMPLE
 	.INPUTS
 		None
@@ -34,6 +43,7 @@
 		16.06.2020 MS: HF 250 - VDA SSL wildcard support
 		28.06.2020 MS: HF 253 - VDA SSL wildcard certificate matching is case-insensitive
 		23.08.2026 JP: Normalize comment-based help (keywords, .LINK, move behavior into .DESCRIPTION)
+		23.08.2026 JP: NetSecurity firewall cmdlets; skip existing Citrix-named rules; TLS 1.3 support
 	.LINK
 		https://github.com/EUCweb/BIS-F/issues/107
 #>
@@ -55,9 +65,79 @@ Begin {
 
 Process {
 
-	if (-not($EnableMode) -or ($DisableMode)) {
-		Write-BISFLog -Msg "VDA SSL Options not configured."  -ShowConsole -Color Yellow
+	if (-not $EnableMode -and -not $DisableMode) {
+		Write-BISFLog -Msg "VDA SSL Options not configured." -ShowConsole -Color Yellow
 		Return
+	}
+
+	function Add-SslVdaFirewallRuleIfMissing {
+		param(
+			[string]$DisplayName,
+			[ValidateSet('TCP', 'UDP')]$Protocol,
+			[int]$LocalPort,
+			[string]$Service
+		)
+
+		$Existing = Get-NetFirewallRule -DisplayName $DisplayName -ErrorAction SilentlyContinue |
+			Where-Object { $_.Direction -eq 'Inbound' }
+		foreach ($Rule in $Existing) {
+			$PortFilter = $Rule | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue
+			if ($PortFilter.Protocol -eq $Protocol -and "$($PortFilter.LocalPort)" -eq "$LocalPort") {
+				Write-BISFLog -Msg "Firewall rule already exists, skipping: $DisplayName ($Protocol/$LocalPort)" -ShowConsole -Color DarkCyan -SubMsg
+				return
+			}
+		}
+
+		New-NetFirewallRule -DisplayName $DisplayName -Direction Inbound -Action Allow -Profile Any `
+			-Protocol $Protocol -LocalPort $LocalPort -Service $Service -Enabled True | Out-Null
+		Write-BISFLog -Msg "Created firewall rule: $DisplayName ($Protocol/$LocalPort)" -ShowConsole -Color DarkCyan -SubMsg
+	}
+
+	function Remove-SslVdaFirewallRulesByDisplayName {
+		param([string]$DisplayName)
+
+		$Rules = Get-NetFirewallRule -DisplayName $DisplayName -ErrorAction SilentlyContinue
+		if (-not $Rules) {
+			return
+		}
+		foreach ($Rule in $Rules) {
+			Remove-NetFirewallRule -Name $Rule.Name -ErrorAction SilentlyContinue
+			Write-BISFLog -Msg "Removed firewall rule: $DisplayName" -ShowConsole -Color DarkCyan -SubMsg
+		}
+	}
+
+	function Disable-SslVdaFirewallRulesByDisplayName {
+		param([string]$DisplayName)
+
+		$Rules = Get-NetFirewallRule -DisplayName $DisplayName -ErrorAction SilentlyContinue |
+			Where-Object { $_.Direction -eq 'Inbound' -and $_.Enabled -eq 'True' }
+		if (-not $Rules) {
+			return
+		}
+		foreach ($Rule in $Rules) {
+			Disable-NetFirewallRule -Name $Rule.Name -ErrorAction SilentlyContinue
+			Write-BISFLog -Msg "Disabled firewall rule: $DisplayName" -ShowConsole -Color DarkCyan -SubMsg
+		}
+	}
+
+	function Write-SslVdaFirewallRuleSummary {
+		param([string[]]$DisplayNames)
+
+		foreach ($Name in $DisplayNames) {
+			$Rules = Get-NetFirewallRule -DisplayName $Name -ErrorAction SilentlyContinue
+			if (-not $Rules) {
+				Write-BISFLog -Msg "Firewall rule not found: $Name" -ShowConsole -Color DarkCyan -SubMsg
+				continue
+			}
+			foreach ($Rule in $Rules) {
+				$PortFilter = $Rule | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue
+				$ServiceFilter = $Rule | Get-NetFirewallServiceFilter -ErrorAction SilentlyContinue
+				$Protocol = if ($PortFilter) { $PortFilter.Protocol } else { 'Any' }
+				$LocalPort = if ($PortFilter) { $PortFilter.LocalPort } else { '' }
+				$Service = if ($ServiceFilter) { $ServiceFilter.Service } else { '' }
+				Write-BISFLog -Msg "$($Rule.DisplayName): Enabled=$($Rule.Enabled) Direction=$($Rule.Direction) Action=$($Rule.Action) Protocol=$Protocol LocalPort=$LocalPort Service=$Service" -ShowConsole -Color DarkCyan -SubMsg
+			}
+		}
 	}
 
 	# Registry path constants
@@ -136,21 +216,19 @@ Process {
 			}
 		}
 
-		Write-BISFLog -Msg "Resetting Firewall rules." -ShowConsole -Color DarkCyan -SubMsg
-		# Enable any existing rules for ICA, CGP and HTML5 ports
-		netsh advfirewall firewall add rule name="Citrix ICA Service"        dir=in action=allow service=$ServiceName profile=any protocol=tcp localport=$IcaPort | Out-Null
-		netsh advfirewall firewall add rule name="Citrix CGP Server Service" dir=in action=allow service=$ServiceName profile=any protocol=tcp localport=$CgpPort | Out-Null
-		netsh advfirewall firewall add rule name="Citrix Websocket Service"  dir=in action=allow service=$ServiceName profile=any protocol=tcp localport=$Html5Port | Out-Null
-
-		# Enable existing rules for UDP-ICA, UDP-CGP
-		netsh advfirewall firewall add rule name="Citrix ICA UDP" dir=in action=allow service=$ServiceName profile=any protocol=udp localport=$IcaPort | Out-Null
-		netsh advfirewall firewall add rule name="Citrix CGP UDP" dir=in action=allow service=$ServiceName profile=any protocol=udp localport=$CgpPort | Out-Null
-
-		# Delete any existing rules for Citrix SSL Service
-		netsh advfirewall firewall delete rule name="Citrix SSL Service" | Out-Null
-
-		# Delete any existing rules for Citrix DTLS Service
-		netsh advfirewall firewall delete rule name="Citrix DTLS Service" | Out-Null
+		try {
+			Write-BISFLog -Msg "Resetting Firewall rules." -ShowConsole -Color DarkCyan -SubMsg
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix ICA Service' -Protocol TCP -LocalPort $IcaPort -Service $ServiceName
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix CGP Server Service' -Protocol TCP -LocalPort $CgpPort -Service $ServiceName
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix Websocket Service' -Protocol TCP -LocalPort $Html5Port -Service $ServiceName
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix ICA UDP' -Protocol UDP -LocalPort $IcaPort -Service $ServiceName
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix CGP UDP' -Protocol UDP -LocalPort $CgpPort -Service $ServiceName
+			Remove-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix SSL Service'
+			Remove-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix DTLS Service'
+		}
+		catch {
+			Write-BISFLog -Msg "Firewall reset failed: $($_.Exception.Message)" -Type W -ShowConsole -Color Yellow
+		}
 
 		#Turning off SSL by setting SSLEnabled key to 0
 		Write-BISFLog -Msg "Disabling ICA SSL." -ShowConsole -Color DarkCyan -SubMsg
@@ -271,74 +349,54 @@ Process {
 		Write-BISFLog -Msg "ACLs set." -ShowConsole -Color DarkCyan -SubMsg
 		$ACLsSet = $True
 
-		#Delete any existing rules for the SSLPort
-		netsh advfirewall firewall delete rule name=all protocol=tcp localport=$SSLPort | Out-Null
+		try {
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix SSL Service' -Protocol TCP -LocalPort $SSLPort -Service $ServiceName
+			Add-SslVdaFirewallRuleIfMissing -DisplayName 'Citrix DTLS Service' -Protocol UDP -LocalPort $SSLPort -Service $ServiceName
+			Disable-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix ICA Service'
+			Disable-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix CGP Server Service'
+			Disable-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix Websocket Service'
+			Disable-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix ICA UDP'
+			Disable-SslVdaFirewallRulesByDisplayName -DisplayName 'Citrix CGP UDP'
 
-		#Delete any existing rules for the DTLSPort
-		netsh advfirewall firewall delete rule name=all protocol=udp localport=$SSLPort | Out-Null
-
-		#Delete any existing rules for Citrix SSL Service
-		netsh advfirewall firewall delete rule name="Citrix SSL Service" | Out-Null
-
-		#Delete any existing rules for Citrix DTLS Service
-		netsh advfirewall firewall delete rule name="Citrix DTLS Service" | Out-Null
-
-		#Creating firewall rule for Citrix SSL Service
-		netsh advfirewall firewall add rule name="Citrix SSL Service"  dir=in action=allow service=$ServiceName profile=any protocol=tcp localport=$SSLPort | Out-Null
-
-		#Creating firewall rule for Citrix DTLS Service
-		netsh advfirewall firewall add rule name="Citrix DTLS Service" dir=in action=allow service=$ServiceName profile=any protocol=udp localport=$SSLPort | Out-Null
-
-		#Disable any existing rules for ICA, CGP and HTML5 ports
-		netsh advfirewall firewall set rule name="Citrix ICA Service"        protocol=tcp localport=$IcaPort new enable=no | Out-Null
-		netsh advfirewall firewall set rule name="Citrix CGP Server Service" protocol=tcp localport=$CgpPort new enable=no | Out-Null
-		netsh advfirewall firewall set rule name="Citrix Websocket Service"  protocol=tcp localport=$Html5Port new enable=no | Out-Null
-
-		#Disable existing rules for UDP-ICA, UDP-CGP
-		netsh advfirewall firewall set rule name="Citrix ICA UDP" protocol=udp localport=$IcaPort new enable=no | Out-Null
-		netsh advfirewall firewall set rule name="Citrix CGP UDP" protocol=udp localport=$CgpPort new enable=no | Out-Null
-
-		Write-BISFLog -Msg "Firewall rules:"  -ShowConsole -Color Cyan
-		$CitrixSSLService = . netsh advfirewall firewall show rule "Citrix SSL Service"
-		foreach ($Line in $CitrixSSLService) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		$CitrixDTLSService = . netsh advfirewall firewall show rule "Citrix DTLS Service"
-		foreach ($Line in $CitrixDTLSService) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		$CitrixICAService = . netsh advfirewall firewall show rule "Citrix ICA Service"
-		foreach ($Line in $CitrixICAService) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		$CitrixCGPServerService = . netsh advfirewall firewall show rule "Citrix CGP Server Service"
-		foreach ($Line in $CitrixCGPServerService) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		$CitrixWebsocketService = . netsh advfirewall firewall show rule "Citrix Websocket Service"
-		foreach ($Line in $CitrixWebsocketService) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		$CitrixICAUDP = . netsh advfirewall firewall show rule "Citrix ICA UDP"
-		foreach ($Line in $CitrixICAUDP) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		$CitrixCGPUDP = . netsh advfirewall firewall show rule "Citrix CGP UDP"
-		foreach ($Line in $CitrixCGPUDP) { if ($Line) { Write-BISFLog -Msg "$Line" -ShowConsole -Color DarkCyan -SubMsg } }
-
-		Write-BISFLog -Msg "Firewall configured." -ShowConsole -Color DarkCyan -SubMsg
-		$FirewallConfigured = $True
+			Write-BISFLog -Msg "Firewall rules:" -ShowConsole -Color Cyan
+			Write-SslVdaFirewallRuleSummary -DisplayNames @(
+				'Citrix SSL Service',
+				'Citrix DTLS Service',
+				'Citrix ICA Service',
+				'Citrix CGP Server Service',
+				'Citrix Websocket Service',
+				'Citrix ICA UDP',
+				'Citrix CGP UDP'
+			)
+			Write-BISFLog -Msg "Firewall configured." -ShowConsole -Color DarkCyan -SubMsg
+			$FirewallConfigured = $True
+		}
+		catch {
+			Write-BISFLog -Msg "Firewall configuration failed: $($_.Exception.Message)" -Type W -ShowConsole -Color Yellow
+		}
 
 		# Create registry keys to enable SSL to the VDA
 		Write-BISFLog -Msg "Setting registry keys..."  -ShowConsole -Color Cyan
 		Set-ItemProperty -Path $IcaListenerPath -name $SslCertHashKey -Value $Cert.GetCertHash() -Type Binary -Confirm:$False
-		switch($SSLMinVersion) {
-			"SSL_3.0" {
-				Set-ItemProperty -Path $IcaListenerPath -name $SslMinVersionKey -Value 1 -Type DWord -Confirm:$False
+		$SslMinVersionValue = $null
+		switch ($SSLMinVersion) {
+			"SSL_3.0" { $SslMinVersionValue = 1 }
+			"TLS_1.0" { $SslMinVersionValue = 2 }
+			"TLS_1.1" { $SslMinVersionValue = 3 }
+			"TLS_1.2" { $SslMinVersionValue = 4 }
+			"TLS_1.3" { $SslMinVersionValue = 5 }
+		}
+
+		if ($SslMinVersionValue -eq 5) {
+			$OsBuild = [int](Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name CurrentBuildNumber).CurrentBuildNumber
+			if ($OsBuild -lt 20348) {
+				Write-BISFLog -Msg "TLS 1.3 requires Windows 11 or Windows Server 2022 or later. Using TLS 1.2." -Type W -ShowConsole -Color Yellow
+				$SslMinVersionValue = 4
 			}
-			"TLS_1.0" {
-				Set-ItemProperty -Path $IcaListenerPath -name $SslMinVersionKey -Value 2 -Type DWord -Confirm:$False
-			}
-			"TLS_1.1" {
-				Set-ItemProperty -Path $IcaListenerPath -name $SslMinVersionKey -Value 3 -Type DWord -Confirm:$False
-			}
-			"TLS_1.2" {
-				Set-ItemProperty -Path $IcaListenerPath -name $SslMinVersionKey -Value 4 -Type DWord -Confirm:$False
-			}
+		}
+
+		if ($null -ne $SslMinVersionValue) {
+			Set-ItemProperty -Path $IcaListenerPath -Name $SslMinVersionKey -Value $SslMinVersionValue -Type DWord -Confirm:$False
 		}
 
 		switch($SSLCipherSuite) {
