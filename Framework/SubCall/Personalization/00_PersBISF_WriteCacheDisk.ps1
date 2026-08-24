@@ -12,7 +12,6 @@
 	.NOTES
 		Author: Matthias Schlimm
 
-
 		History:
 	  	24.09.2012 MS: Script created
 		09.10.2012 MS: Set uniqueid disk ID=<uniqueID>
@@ -56,8 +55,6 @@
 		14.12.2020 MS: HF 297 - MCS CacheDisk is not right formatted
 		25.12.2020 MS: HF 302 - manually configuration of the Cache Disk ID in GPO will override BIS-F automatic detection of the $CacheDiskID
 		08.01.2021 MS: HF 302 - using $DiskIdentifier instead DiskID, DiskID is for another Global variable
-
-
 #>
 
 Begin {
@@ -71,9 +68,10 @@ Begin {
 	$CacheCheckFile = "$PVSDiskDrive\$Computer.txt"
 	$DiskpartFile = "$env:TEMP\$Computer-DiskpartFile.txt"
 	$SkipReboot = $false
-}
 
-Process {
+	####################################################################
+	####### functions #####
+	####################################################################
 	# Get uniqueID from MasterImage
 	function Get-UniqueIDreg {
 		#read UniqueID from registry
@@ -87,18 +85,14 @@ Process {
 		<#
 		.SYNOPSIS
 		Test optical drive availability
-
 		.DESCRIPTION
 		Test optical drive availability and
 		set the same DriveLetter as on the captured master image
 		DriveLetter is stored in registry in variable LIC_BISF_OptDrive
-
 		.EXAMPLE
 		Test-OpticalDrive
-
 		.NOTES
 		Author: Matthias Schlimm
-
 
 		History:
 			04.03.2014 BR: Added function CheckCDRom
@@ -365,11 +359,6 @@ Process {
 			}
 		}
 	}
-
-
-	####################################################################
-
-	###################################################################
 	# Get Reference Server Hostname in registry to detect it and skip reboot
 	function Get-RefSrv {
 		IF ($CTXAppLayeringSW -eq $true) {
@@ -385,8 +374,12 @@ Process {
 		return $SkipReboot
 	}
 	####################################################################
-
+	####### end functions #####
 	####################################################################
+}
+
+Process {
+	#### Main Program
 	$SkipReboot = Get-RefSrv
 	Test-OpticalDrive
 	$DiskMode = Get-BISFDiskMode
@@ -428,11 +421,10 @@ Process {
 			Write-BISFLog -Msg "MCSIO Cache Disk Configuration are not set in GPO"
 		}
 	}
- ELSE {
+	ELSE {
 		Write-BISFLog -Msg "Cache Disk will NOT be configured for DiskMode $DiskMode" -Type W
 	}
 }
-
 
 End {
 	Add-BISFFinishLine
