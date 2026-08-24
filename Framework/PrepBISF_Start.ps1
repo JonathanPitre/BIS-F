@@ -12,7 +12,6 @@
 	.NOTES
 		Author: Matthias Schlimm
 		Editor: Mike Bijl (Rewritten variable names and script format)
-		Company:  EUCWeb.com
 
 		History:
 		24.09.2012 MS: Script created
@@ -151,7 +150,7 @@ Begin {
 	$Global:LIC_BISF_CLI_ST = @() #ST = SessionType
 	$Global:LIC_BISF_CLI_LS = @() #LS = BISF LogShare
 	$Global:LIC_BISF_CLI_TB = @() #TB = Turbo.net Update
-	$Global:LIC_BISF_CLI_OT = @() #OT = VMware OS Optimization Tool
+	$Global:LIC_BISF_CLI_OT = @() # OT = Omnissa / VMware OS Optimization Tool (OSOT); optional LIC_BISF_CLI_OT_DL auto-download
 	$Global:LIC_BISF_CLI_WB = @() #WB = Citrix Workspace Environment Agent
 	$Global:LIC_BISF_CLI_RM = @() #RM = Remove XenApp Server from DSN and Farm
 	$Global:LIC_BISF_CLI_AR = @() #AR = Remove app-V packages
@@ -205,7 +204,7 @@ Process {
 	}
 	$MaximumExecutionTime = (Get-Date).AddMinutes($MaximumExecutionMinutes)
 
-	#running loop if Personalization State is not finished
+	# Running loop if Personalization State is not finished
 	$a = 0
 
 	DO {
@@ -239,14 +238,14 @@ Process {
 	# create RegHive if needed
 	$BISFRegHive = Test-BISFRegHive -Verbose:$VerbosePreference
 
-	#Load Global environment
+	# Load Global environment
 	$ScriptsFolder = $LIB_Folder
 	Invoke-BISFFolderScripts -Path "$ScriptsFolder" -Verbose:$VerbosePreference
 
 
 	Add-BISFFinishLine
 
-	#Load custom scripts
+	# Load custom scripts
 	$ScriptsFolder = $SubCall_Folder + "Preparation\Custom"
 	Invoke-BISFFolderScripts -Path "$ScriptsFolder" -Verbose:$VerbosePreference
 
