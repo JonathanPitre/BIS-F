@@ -196,7 +196,7 @@ Full version history and release notes live in [CHANGELOG.md](CHANGELOG.md).
 
 ## 🤝 Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for setup,
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
 extensions, linting, and the pull request workflow. Behavior or public-doc changes should
 also get an entry under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
 
