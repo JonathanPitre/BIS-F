@@ -5,27 +5,64 @@ All notable changes to the Base Image Script Framework (BIS-F) will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses a custom versioning scheme (`YYMM.minor`; prior releases used `major.LTSR.build`).
 
+## [Unreleased]
+
+### Changed
+
+- Moved `CONTRIBUTING.md` from `.github/` to the repository root so contributor
+  guidelines sit next to `README.md`
+
 ## [2608.0]
 
 ### Added
 
+- Multithreaded PVS/MCS IO file hydration with optional JSON cold-start
+  (`10_PersBISF_HydratePVS.ps1`, ADMX `POL_PVSHydration`, shipped
+  `BISF-Hydration.json` for Office x64 / Outlook new / Edge / OneDrive machine):
+  runspace pool (policy method Folders/JSON/Both, max threads), runs on PVS
+  shared vDisks and Citrix MCS IO shared images
+  ([#129](https://github.com/EUCweb/BIS-F/issues/129),
+  [#363](https://github.com/EUCweb/BIS-F/pull/363); thanks Jeremy Saunders)
+- `tools/Install-BISF.ps1` installer: copy Framework/ADMX/launcher, write
+  `HKLM:\SOFTWARE\Login Consultants\BISF` `Path`/`Version`, Administrative Tools
+  shortcut to `PrepareBaseImage.cmd` (hidden from standard users)
+- `tools/Test-BISFUtf8Bom.ps1` (+ `-Fix`) and CI job to require UTF-8 with BOM on all
+  `*.ps1` / `*.psm1` / `*.psd1` (Windows PowerShell 5.1); `.editorconfig` + VS Code
+  `files.encoding: utf8bom` for PowerShell
 - SentinelOne VDI sealing script `10_PrepBISF_AV-SentinelOne.ps1` (FDCS `read_fdcs_status=2` gate, `VDI=true` /
   Randomize UUID verify, legacy `sentinelctl agent_id` reset, VSS snapshot disable-on-seal with
   `BISF_S1_SKIP_VSS` opt-out)
 - Rapid7 Insight Agent sealing script `10_PrepBISF_Rapid7.ps1` (stop `ir_agent`, remove `bootstrap.cfg`)
+- CrowdStrike Falcon Sensor Prep/Pers scripts `10_PrepBISF_AV-CrowdStrike.ps1` /
+  `10_PersBISF_AV-CrowdStrike.ps1` for non-persistent Citrix MCS/PVS (`VDI=1` seal guidance, best-effort
+  `CSFalconService` stop on seal / start on clone; does not wipe AID/`AG` keys)
+  ([#404](https://github.com/EUCweb/BIS-F/issues/404))
 - NinjaOne Agent sealing script `10_PrepBISF_NinjaOne.ps1` (stop `NinjaRMMAgent`, run `noclone.exe`; warn/stop
   `lockhart` if Ninja Backup is present)
+- Omnissa Horizon OS Optimization Tool prep `10_PrepBISF_vmOSOT.ps1`: optional Customer Connect auto-download
+  (`LIC_BISF_CLI_OT_DL`), Omnissa and legacy VMware EXE names, current `-o` / `-v` / `-r` CLI
 - Markdownlint workspace config + GitHub Actions (`markdownlint.yml`)
 - PSScriptAnalyzer settings, `tools/Invoke-BISFScriptAnalyzer.ps1`, and `validate-scripts.yml` CI
 - `tools/Test-BISFVariableCasing.ps1` and a `variable-casing` job in `validate-scripts.yml`
   (PascalCase gate for Framework scripts; PR ratchet on changed files, full scan on push)
 - Experimental PowerShell CodeQL workflow (`codeql-powershell.yml`)
 - VS Code / Cursor extension recommendations and `tools/Install-BISFDevExtensions.ps1`
-- Dependabot for GitHub Actions (daily, grouped) with squash auto-merge workflow
+- Dependabot for GitHub Actions (daily, grouped, `target-branch: refactor/modernize`) with squash auto-merge workflow
 - Shared `.github/tool-versions.env`, `tools/Update-BISFToolPins.ps1`, and weekly `update-tool-pins.yml`
+- SDelete auto-download when the policy is enabled and the bitness-matching exe is missing
+  (`Save-BISFSDelete` / `Get-BISFSDeletePath`); ADMX `LIC_BISF_CLI_SD_UPD` to update an existing
+  copy when a newer Sysinternals build is available (`CHK_SD_UPD`)
 
 ### Changed
 
+- GitHub Actions on current majors: `actions/checkout@v7`, `actions/cache@v6`,
+  `actions/upload-artifact@v7`, `github/codeql-action/*@v4`,
+  `DavidAnson/markdownlint-cli2-action@v24`, `stefanzweifel/git-auto-commit-action@v7`,
+  `peter-evans/create-pull-request@v8` (Node.js 24; CodeQL Action v3 deprecation)
+
+- Replaced the MahApps.Metro 1.1.2 splash (`MahApps.Metro.dll` /
+  `System.Windows.Interactivity.dll`) with a native WPF Fluent progress dialog
+  (`Show-BISFSplashScreen` / `Close-BISFSplashScreen`); no third-party UI assemblies
 - Refreshed root `LICENSE` to the current official GNU GPLv3 text (HTTPS FSF/GNU URLs); SPDX `GPL-3.0`
   badge/README note, module `LicenseUri`, and `.gitattributes` LF rule for GitHub license detection
 - Exclude `LICENSE` from markdownlint (`MD041`) via `.markdownlint-cli2.jsonc` and plaintext
@@ -37,13 +74,17 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
   re-opened against the new ADMX
 - ADMX/ADML hygiene: XML declaration, `fallbackCulture="en-US"`, ADML `displayName`, unused `CAT_Misc` removed,
   `POL_CTXOE` `supportedOn` fixed to `windows:SUPPORTED_WindowsVista`
-- Fork branch `2608`: merge Pascal PDQ fixes, DennisHirsch Office 2019/2021/2024 paths, EUCweb PRs
+- Default/fork branch renamed from `2608` to `refactor/modernize` (product version remains `2608.0`)
+- Fork branch `refactor/modernize`: merge Pascal PDQ fixes, DennisHirsch Office 2019/2021/2024 paths, EUCweb PRs
   [#364](https://github.com/EUCweb/BIS-F/pull/364) / [#379](https://github.com/EUCweb/BIS-F/pull/379), selective micswe
   Get-WinEvent event-log clear
 - Port EUCweb `5fe4abd` intent: `Set-NetAdapterRSS -NoRestart` in `52_PrepBISF_VMWareTCPIPOptimizations.ps1`
+- Refreshed `10_PrepBISF_vmOSOT.ps1` for Omnissa Horizon OSOT 2603: `OmnissaHorizonOSOptimizationTool*.exe`,
+  env-based search paths, `Start-Process` CLI (`-o` / `-v` / `-r`), ADMX `POL_vmOSOT` Omnissa naming and
+  `%ProgramFiles%\Omnissa\OSOT` default folder
 - Polished `README.md` (downloads badge, section emojis, current product names, clone-identity / AV-EDR messaging,
-  fixed docs links)
-- Rewrote `.github/CONTRIBUTING.md` with setup, lint, and PR guidance
+  fixed docs links); install via `tools/Install-BISF.ps1`; release badge `2608.0`
+- Rewrote `.github/CONTRIBUTING.md` with setup, lint, UTF-8 BOM, and PR guidance
 - Adopted PascalCase as the standard for PowerShell variables and parameters across `Framework/`
   (ADMX/registry mirrors and legacy path globals unchanged); documented in `.github/CONTRIBUTING.md`
 - Expanded workspace spell check exceptions in `.vscode/settings.json` (`cSpell.words`), including
@@ -51,12 +92,51 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - Modernized `Framework/SubCall/Template/BISF_TEMPLATE.ps1` for Prep/Pers Custom scripts
   (`$ScriptPath` init, BIS-F logging/service patterns, shared Prep/Pers guidance)
 - Cleared PSScriptAnalyzer Error and Warning findings under repo settings: expand cmdlet aliases,
-  left-side `$null` comparisons, non-empty catch no-ops, UTF-8 BOM on new prep scripts, explicit
+  left-side `$null` comparisons, non-empty catch no-ops, UTF-8 BOM on all PowerShell scripts, explicit
   `FunctionsToExport` in `BISF.psd1`, rename script-local `Clear-BISFEventLogs`; exclude intentional
   legacy rules (`PSUseShouldProcessForStateChangingFunctions`, `PSAvoidOverwritingBuiltInCmdlets`,
   `PSAvoidAssignmentToAutomaticVariable`, `PSAvoidUsingInvokeExpression`, `PSAvoidUsingWMICmdlet`)
+- Comment-based help in `BISF.psm1` documents the public `Verb-BISFNoun` names for `Get-Help` / editor IntelliSense;
+  missing SYNOPSIS/DESCRIPTION/PARAMETER/EXAMPLE filled for exported helpers. Function definitions and
+  `FunctionsToExport` stay unprefixed (`DefaultCommandPrefix = 'BISF'`)
+- Removed `Stop-BISFProcesses` (`Stop-Processes`); SCCM and Trend Micro prep now call `Stop-Process -Force`
+- Default Sysprep arguments add `/mode:vm` only when `Get-BISFHypervisor` detects a VM guest
+  (`$IsVirtualMachine`); physical/unknown omit it. ADMX Custom Sysprep Arguments still override
+- `05_PersBISF_EnableSSLVDA.ps1`: NetSecurity firewall cmdlets replace `netsh advfirewall`; skip
+  create when an equivalent Citrix-named inbound rule exists; never delete non-Citrix rules on the
+  SSL port; TLS 1.3 min version (DWORD 5) with OS gate on Windows 11 / Server 2022+; ADMX default
+  minimum TLS version TLS 1.2
+- `51_PrepBISF_DeleteRDSGracePeriod.ps1`: reuse `Enable-BISFPrivilege`, delete only TIMEBOMB values,
+  try/finally ACL ownership; remains valid for Windows Server 2016–2025 (same `GracePeriod` /
+  `L$RTMTIMEBOMB*` key)
+
+### Removed
+
+- Unused module helpers: `Set-PostSysprep`, `Show-CustomInputBox`, `Test-AccessRights`,
+  `Get-ScriptExecutionPath`, `Stop-ScheduledTask`, `Get-PreparationState`
+- `Write-FunctionName2Log` (`Write-BISFFunctionName2Log`) and the per-function
+  `Processing function <Name>` log lines
+- Comment-based help `.LINK https://eucweb.com` on Framework functions and scripts
+  (module `HelpInfoURI` remains). Vendor `.LINK` URLs are unchanged
 
 ### Fixed
+
+- `99_PersBISF_StartUp.ps1`: SIH scheduled task used undefined `$ScheduledTaskList` and a truncated
+  `-Color DarkCy`; DiskMode `AndSkipImaging` / `AppLayering` suffixes skipped SDelete; hardcoded
+  `C:\Windows\system32`; grammar and header polish; `VDASharedAppLayering` now runs SDelete when configured
+- Zip/source install left `HKLM:\SOFTWARE\Login Consultants\BISF` without `Path`/`Version`;
+  `Initialize-Configuration` self-heals from Framework parent + `BISF.psd1`, and
+  `Get-Version` treats `YYMM.minor` (`2608.0`) as production (no false BuildNumber warning)
+- Desktop shortcut uses `Join-Path` against install root `PrepareBaseImage.cmd` (not a broken
+  empty Path / legacy `prepareimage.bat`)
+- `Set-BISFLAPSExpirationTime`: `[Sdsisearcher]` is not a type; use `[ADSISearcher]`, look up the computer by
+  `sAMAccountName`, load DN only, skip the AD write if the account is not found, and catch/dispose ADSI failures
+- `Test-AccessValidated`: stray `is` after `-ErrorVariable ErrVar` treated as a path argument
+- `Convert-Settings`: drop the registry-rename branch (`$NewRegKey` cannot be both `$false` and `$true`);
+  keep deletion of the legacy `LIC_PVS_Device_Personalize` task
+- Unprefixed BIS-F helper calls after import: `Write-Log` / `Show-ProgressBar` / `Show-MessageBox` in FSLogix, Empirum,
+  SecureBISFFolder (`-BISFMsg` → `-Msg`), AV-EPC, Turbo, and SEP; internal `BISF.psm1` calls to `Write-Log`,
+  `Get-CLICmd`, `Test-Service`, `Close-SplashScreen`, and `Get-LogContent`
 
 - [#374](https://github.com/EUCweb/BIS-F/issues/374): 02_PersBISF_CTX.ps1 never finishes on Azure AD only Azure VMs (MS)
 - CimInstance `.put()` volume label failure — use `Get-Volume` / `Set-Volume` (Pascal PDQ)
@@ -67,6 +147,9 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 - [#371](https://github.com/EUCweb/BIS-F/issues/371): New SEP client not recognized (trondr / EUCweb #379)
 - Office 2019/2021/2024 / LTSC OSPPREARM path detection (DennisHirsch26 / EUCweb #393)
 - Spell check findings in project Markdown and related docs
+- ZCM prep used leftover `$LIC_BISF_ZCM_CFG` instead of ADMX `POL_ZCM` / `$LIC_BISF_CLI_ZCM`
+  (`10_PrepBISF_ZCM.ps1`); `$ServiceName1.Status` never matched a running service, so zac
+  unregister did not run. Empty `LIC_BISF_CLI_ZCM` no longer calls `.Split()` or `zac unr`
 
 ## [7.1912.7.11042] - 2022-11-19
 
@@ -631,7 +714,7 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ### Changed
 
-- Using progressbar during wait for the personalization is finished (MS)
+- Using progress bar during wait for the personalization is finished (MS)
 - Using Array in Initialize-BISFConfiguration $Global:TaskStates= @("AfterInst","AfterPrep","Active","Finished")
   instead of hardcoded values (MS)
 
@@ -932,7 +1015,7 @@ instead of "UNC-Path" (MS)
 
 ### Added
 
-- [#146](https://github.com/EUCweb/BIS-F/issues/146): Add progressbar to defrag (MS)
+- [#146](https://github.com/EUCweb/BIS-F/issues/146): Add progress bar to defrag (MS)
 - Added Support for RES ONE Automation Agent Version 10 with new path in registry and filesystem (MS)
 - Added $Global:Wait1= "10" time in seconds in BISF.psm1 (MS)
 - Added check for admin privileges before script execution (MS)
@@ -1352,9 +1435,9 @@ instead of "UNC-Path" (MS)
 ### Changed
 
 - Replaced trace32 with CMTrace latest version (MS)
-- Detect if running from SCCM/MDT task sequence, if so it sets the log file location to the task sequence LogPath (MS)
+- Detect if running from SCCM/MDT Task Sequence, if so it sets the log file location to the Task Sequence LogPath (MS)
 - Defrag is no longer running on the hard disk, now it's running on the vDisk in POST script (MS)
-- SCCM/MDT Task sequence detection to suppress a shutdown of the Base Image after successful build (MS)
+- SCCM/MDT Task Sequence detection to suppress a shutdown of the Base Image after successful build (MS)
 - CCleaner; New version of WinApp2.ini v5.04.150325 and CCleaner 5.4.0 (MS)
 - Get PowerShell minimum Major version from PowerShell Data File instead of global variable (MS)
 - Symantec Endpoint Protection; Show progress bar on full scan and VIETool (MS)
