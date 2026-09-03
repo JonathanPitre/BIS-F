@@ -5,7 +5,7 @@ environment setup, local quality checks, and how to open a pull request.
 
 ## Code of Conduct
 
-Please read and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Please read and follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
 ## Ways to contribute
 
@@ -37,7 +37,7 @@ Please read and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 ### Markdown
 
 Markdown is linted with [markdownlint](https://github.com/DavidAnson/markdownlint) using
-[`.markdownlint.json`](../.markdownlint.json) and [`.markdownlint-cli2.jsonc`](../.markdownlint-cli2.jsonc)
+[`.markdownlint.json`](.markdownlint.json) and [`.markdownlint-cli2.jsonc`](.markdownlint-cli2.jsonc)
 (which ignores the root `LICENSE` file so GPLv3 stays verbatim). With the recommended extension
 installed, fixes run on save.
 
@@ -77,7 +77,7 @@ Rewrite any that are missing the BOM:
 Workspace settings and `.editorconfig` set `charset = utf-8-bom` for `*.ps1` /
 `*.psm1` / `*.psd1`. Do not save those files as UTF-8 without BOM.
 
-Settings live in [`.vscode/PSScriptAnalyzerSettings.psd1`](../.vscode/PSScriptAnalyzerSettings.psd1).
+Settings live in [`.vscode/PSScriptAnalyzerSettings.psd1`](.vscode/PSScriptAnalyzerSettings.psd1).
 Some rules are excluded because BIS-F intentionally uses legacy patterns: `$Global:` state across
 prep/pers scripts (`PSAvoidGlobalVars`), compatibility cmdlet shims
 (`PSAvoidOverwritingBuiltInCmdlets`), `$PSScriptRoot`/`$args` bootstrap
@@ -97,7 +97,7 @@ Use **PascalCase** for PowerShell variables and parameters (for example `$LogPat
 - Do **not** introduce new underscore-separated variable names; prefer `$MainFolder`
   over `$Main_Folder` in new scripts.
 - New scripts should start from
-  [Framework/SubCall/Template/BISF_TEMPLATE.ps1](../Framework/SubCall/Template/BISF_TEMPLATE.ps1).
+  [Framework/SubCall/Template/BISF_TEMPLATE.ps1](Framework/SubCall/Template/BISF_TEMPLATE.ps1).
 - Do not add `.LINK https://eucweb.com` on functions or scripts. The module
   `HelpInfoURI` in `BISF.psd1` is the single project URL.
 
@@ -120,7 +120,7 @@ Use **PascalCase** for PowerShell variables and parameters (for example `$LogPat
 | `dependabot.yml` + `dependabot-auto-merge.yml` | Daily GitHub Actions updates on the default branch; squash auto-merge when checks pass |
 | `update-tool-pins.yml` | Weekly bump of PSScriptAnalyzer / CodeQL PowerShell pins in `.github/tool-versions.env` |
 
-Shared non-Action pins live in [`.github/tool-versions.env`](tool-versions.env). Refresh them locally
+Shared non-Action pins live in [`.github/tool-versions.env`](.github/tool-versions.env). Refresh them locally
 with `.\tools\Update-BISFToolPins.ps1`.
 
 CodeQL SARIF upload requires GitHub code scanning / Advanced Security on the repository. The
@@ -152,7 +152,7 @@ Drop site-specific logic into:
 - `Framework/SubCall/Preparation/Custom/`
 - `Framework/SubCall/Personalization/Custom/`
 
-Use [Framework/SubCall/Template/BISF_TEMPLATE.ps1](../Framework/SubCall/Template/BISF_TEMPLATE.ps1)
+Use [Framework/SubCall/Template/BISF_TEMPLATE.ps1](Framework/SubCall/Template/BISF_TEMPLATE.ps1)
 as a starting point when adding new scripts.
 
 ## Pull requests
@@ -170,7 +170,7 @@ Doc fixes and clarifications are welcome. Prefer Keep a Changelog style entries 
 
 ## Additional resources
 
-- [Project README](../README.md)
+- [Project README](README.md)
 - [EUCweb documentation](https://eucweb.com/doc/bis-f-1912)
 - [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)
 - [Fork a repo](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
