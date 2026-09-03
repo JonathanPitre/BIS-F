@@ -1,0 +1,13 @@
+# markdownlint-cli2 (pre-commit, CI, local npx): same rules as .markdownlint.yaml;
+# ignore vendored Markdown under node_modules (e.g. tools/ninjaone-mcp) and
+# agent skill trees (canonical .agents/skills plus git-symlink adapters).
+globs:
+  - "**/*.md"
+ignores:
+  - "**/node_modules/**"
+  - ".agents/skills/**"
+  - ".claude/skills/**"
+  - ".cursor/skills/**"
+  - ".gemini/skills/**"
+  - ".github/skills/**"
+  - ".firecrawl/**"
