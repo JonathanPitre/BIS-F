@@ -1,2 +1,14 @@
 # Local scratch / one-off helper scripts
 _*.ps1
+
+# Local agent / editor tooling
+/LEAN-CTX.md
+/GEMINI.md
+/CLAUDE.md
+/.cursorrules
+/.cursorignore
+/.cursor/
+/.vendor/
+/.agents/skills/
+/.claude/
+/.gemini/
