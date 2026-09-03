@@ -80,6 +80,7 @@
       <elements>
         <boolean id="CHK_SD_SF" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_SD_SF" />
         <text id="TXT_CLI_SD_SF_CUS" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_SD_SF_CUS" />
+        <boolean id="CHK_SD_UPD" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_SD_UPD" />
         <boolean id="CHK_SD_runBI" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_SD_runBI" />
         <boolean id="CHK_SD_runPVSCacheDisk" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_SD_runPVSCacheDisk" />
         <boolean id="CHK_SD_runMCSIO" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_SD_runMCSIO" />
@@ -539,6 +540,7 @@
         <boolean id="CHK_vmOSOT_SF" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_OT_SF" />
         <text id="TXT_vmOSOT_SF_CUS" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_OT_SF_CUS" />
         <text id="TXT_vmOSOT_Templ" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_OT_Templ" />
+        <boolean id="CHK_vmOSOT_DL" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_OT_DL" />
       </elements>
     </policy>
     <policy name="POL_XAImagePrepRemoval" class="Machine" displayName="$(string.POL_XAImagePrepRemoval)" explainText="$(string.POL_XAImagePrepRemoval_Help)" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_POL_RM">
@@ -1050,6 +1052,11 @@
               <string>TLS_1.2</string>
             </value>
           </item>
+          <item displayName="$(string.ITM_TLS13)">
+            <value>
+              <string>TLS_1.3</string>
+            </value>
+          </item>
           <item displayName="$(string.ITM_SSL30)">
             <value>
               <string>SSL_3.0</string>
@@ -1093,8 +1100,28 @@
         </item>
       </disabledList>
       <elements>
+        <enum id="DST_PVSHydration_Method" key="Software\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_PVSHydration_Method">
+          <item displayName="$(string.ITM_PVSHydration_Method_Folders)">
+            <value>
+              <string>FOLDERS</string>
+            </value>
+          </item>
+          <item displayName="$(string.ITM_PVSHydration_Method_Json)">
+            <value>
+              <string>JSON</string>
+            </value>
+          </item>
+          <item displayName="$(string.ITM_PVSHydration_Method_Both)">
+            <value>
+              <string>BOTH</string>
+            </value>
+          </item>
+        </enum>
         <text id="TXT_PVSHydration_Paths" key="Software\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_PVSHydration_Paths" />
         <text id="TXT_PVSHydration_Extensions" key="Software\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_PVSHydration_Extensions" />
+        <text id="TXT_PVSHydration_JsonPath" key="Software\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_PVSHydration_JsonPath" />
+        <boolean id="CHK_PVSHydration_Runspaces" key="Software\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_PVSHydration_Runspaces" />
+        <decimal id="DXT_PVSHydration_MaxThreads" key="Software\Policies\Login Consultants\BISF" valueName="LIC_BISF_CLI_PVSHydration_MaxThreads" minValue="0" maxValue="128" />
       </elements>
     </policy>
     <policy name="POL_VDACfg" class="Machine" displayName="$(string.POL_VDACfg)" explainText="$(string.POL_VDACfg_Help)" presentation="$(presentation.POL_VDACfg)" key="SOFTWARE\Policies\Login Consultants\BISF" valueName="LIC_BISF_POL_VDACfg">
