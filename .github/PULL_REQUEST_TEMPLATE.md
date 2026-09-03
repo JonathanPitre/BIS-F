@@ -22,7 +22,7 @@ Thanks for contributing to BIS-F. Fill in the sections below so reviewers can ev
 
 <!-- How did you verify the change? Include steps or commands. -->
 
-- [ ] Ran relevant local checks from [CONTRIBUTING.md](CONTRIBUTING.md)
+- [ ] Ran relevant local checks from [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [ ] CI checks are green (markdownlint, validate-scripts, CodeQL where applicable)
 
 ## Checklist
