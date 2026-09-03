@@ -1,13 +1,21 @@
 ﻿<#
 	.SYNOPSIS
-		Configure several System Startup Actions (SSA)
+		Configure system startup actions during personalization.
 	.DESCRIPTION
+		Runs disk-mode-specific startup tasks: start Windows Update on private/read-write
+		images, enable or disable the Windows SIH (sihclient.exe) scheduled task to avoid
+		CPU load when WSUS is stopped, and optionally run SDelete to zero free space on
+		PVS write-cache, MCS IO cache, or MCS system drives in shared image mode.
+
+		When SDelete is enabled and the OS-bitness-matching executable is missing, BIS-F
+		downloads the latest build from live.sysinternals.com. An existing copy is updated
+		only when LIC_BISF_CLI_SD_UPD is enabled.
 	.EXAMPLE
 	.NOTES
 		Author: Matthias Schlimm
 
 		History:
-	  	11.08.2015 BR: Script created
+		11.08.2015 BR: Script created
 		06.10.2015 MS: Rewritten script with standard .SYNOPSIS
 		22.03.2016 MS: Added SDelete to run on the WriteCacheDisk on PVS Target Devices only
 		10.11.2016 MS: SDelete will no longer be distributed by BISF, it must be installed in C:\Windows\system32
@@ -20,164 +28,144 @@
 		05.10.2019 MS: ENH 12 - Configure sDelete for different environments
 		05.10.2019 MS: ENH 43 - sihclient.exe consumes CPU load with disabled WSUS Service (function invoke-sihTask)
 		18.02.2020 JK: Fixed Log output spelling
+		24.08.2026 JP: Fix SIH task name/path, DiskMode suffixes, SDelete auto-download/update, style and grammar
+	.LINK
+		https://learn.microsoft.com/sysinternals/downloads/sdelete
 #>
 
 Begin {
 	$ScriptPath = $MyInvocation.MyCommand.Path
 	$ScriptDir = Split-Path -Parent $ScriptPath
 	$ScriptName = [System.IO.Path]::GetFileName($ScriptPath)
-	#sdelete
-	IF ($OSBitness -eq "32-bit") { $SdeleteVersion = "sdelete.exe" } ELSE { $SdeleteVersion = "sdelete64.exe" }
-	IF ($LIC_BISF_CLI_SD_SF -eq "1") {
-		$SDeletePath = "$($LIC_BISF_CLI_SD_SF_CUS)\$SdeleteVersion"
-	}
- ELSE {
-		$SDeletePath = "C:\Windows\system32\$SdeleteVersion"
-	}
-
 }
 
 Process {
 
-	# region functions
+	#region functions
 	function Start-SDelete {
-		IF ($RunPersSdelete -eq $true) {
-			IF ((Test-Path ("$SDeletePath") -PathType Leaf )) {
-				$ProductFileVersion = (Get-Item "$SDeletePath").VersionInfo.FileVersion
-				Write-BISFLog -Msg "Product SDelete $ProductFileVersion installed" -ShowConsole -Color Cyan
-				IF ($ProductFileVersion -lt "2.02") {
-					Write-BISFLog -Msg "WARNING: SDelete $ProductFileVersion is not supported, Please use Version 2.02 or newer !!" -ShowConsole -Type W
-					Start-Sleep 20
-				}
-				ELSE {
-					Write-BISFLog -Msg "Supported SDelete Version detected, processing configuration" -ShowConsole
+		[CmdletBinding()]
+		param()
 
-					#Citrix PVS Image on the WriteCache Disk if the image is in shared image mode
-					IF (($LIC_BISF_CLI_SD_runPVSCacheDisk -eq 1) -and ($DiskMode -eq "ReadOnly") -and ($LIC_BISF_CLI_WCD -ne "NONE")) {
-						Write-BISFLog -Msg "Running SDelete on PVS WriteCacheDisk Drive $LIC_BISF_CLI_WCD" -ShowConsole -Color DarkCyan -SubMsg
-						Start-BISFProcWithProgBar -ProcPath "$SDeletePath" -Args "-accepteula -z $($LIC_BISF_CLI_WCD)" -ActText "SDelete is running to Zero Out Free Space on drive $LIC_BISF_CLI_WCD"
-					}
+		if ($RunPersSdelete -ne $true) {
+			return
+		}
 
-					#Citrix MCSIO on persistent CacheDisk if the image is in shared image mode
-					IF (($LIC_BISF_CLI_SD_runMCSIO -eq 1) -and ($DiskMode -eq "VDAShared") -and ($LIC_BISF_CLI_MCSIODriveLetter -ne "NONE") -and ($MCSIO -eq $true)) {
-						Write-BISFLog -Msg "Running SDelete on MCSIO CacheDisk Drive $LIC_BISF_CLI_MCSIODriveLetter" -ShowConsole -Color DarkCyan -SubMsg
-						Start-BISFProcWithProgBar -ProcPath "$SDeletePath" -Args "-accepteula -z $($LIC_BISF_CLI_MCSIODriveLetter)" -ActText "SDelete is running to Zero Out Free Space on drive $LIC_BISF_CLI_MCSIODriveLetter"
+		$SDeletePath = Save-BISFSDelete
+		if ([string]::IsNullOrWhiteSpace($SDeletePath) -or -not (Test-Path -LiteralPath $SDeletePath -PathType Leaf)) {
+			Write-BISFLog -Msg "SDelete could not be detected; skipping zero free space" -Type W
+			return
+		}
 
-					}
+		$ProductFileVersion = (Get-Item -LiteralPath $SDeletePath).VersionInfo.FileVersion
+		Write-BISFLog -Msg "SDelete $ProductFileVersion found at $SDeletePath" -ShowConsole -Color Cyan
+		if ($ProductFileVersion -lt '2.02') {
+			Write-BISFLog -Msg "SDelete $ProductFileVersion is not supported; please use version 2.02 or newer" -ShowConsole -Type W
+			Start-Sleep -Seconds 20
+			return
+		}
 
-					#Citrix MCS on system drive if the image is in shared image mode
-					IF (($LIC_BISF_CLI_SD_runMCS -eq 1) -and ($DiskMode -eq "VDAShared") -and ($MCSIO -eq $false)) {
-						Write-BISFLog -Msg "Running SDelete on MCS SystemDrive $env:SystemDrive" -ShowConsole -Color DarkCyan -SubMsg
-						Start-BISFProcWithProgBar -ProcPath "$SDeletePath" -Args "-accepteula -z $($env:SystemDrive)" -ActText "SDelete is running to Zero Out Free Space on drive $env:SystemDrive"
-					}
-				}
+		Write-BISFLog -Msg "Supported SDelete version detected; processing configuration" -ShowConsole
 
-			}
-			ELSE {
-				Write-BISFLog -Msg "SDelete could not detected in Path $SDeletePath"
-			}
+		$DiskModeBase = $DiskMode -replace 'AndSkipImaging', '' -replace 'AppLayering$', ''
+
+		# Citrix PVS image on the write-cache disk in shared image mode
+		if (($LIC_BISF_CLI_SD_runPVSCacheDisk -eq 1) -and ($DiskModeBase -eq 'ReadOnly') -and ($LIC_BISF_CLI_WCD -ne 'NONE')) {
+			Write-BISFLog -Msg "Running SDelete on PVS write-cache disk drive $LIC_BISF_CLI_WCD" -ShowConsole -Color DarkCyan -SubMsg
+			Start-BISFProcWithProgBar -ProcPath $SDeletePath -Args "-accepteula -z $($LIC_BISF_CLI_WCD)" -ActText "SDelete is zeroing free space on drive $LIC_BISF_CLI_WCD"
+		}
+
+		# Citrix MCS IO on persistent cache disk in shared image mode
+		if (($LIC_BISF_CLI_SD_runMCSIO -eq 1) -and ($DiskModeBase -eq 'VDAShared') -and ($LIC_BISF_CLI_MCSIODriveLetter -ne 'NONE') -and ($MCSIO -eq $true)) {
+			Write-BISFLog -Msg "Running SDelete on MCS IO cache disk drive $LIC_BISF_CLI_MCSIODriveLetter" -ShowConsole -Color DarkCyan -SubMsg
+			Start-BISFProcWithProgBar -ProcPath $SDeletePath -Args "-accepteula -z $($LIC_BISF_CLI_MCSIODriveLetter)" -ActText "SDelete is zeroing free space on drive $LIC_BISF_CLI_MCSIODriveLetter"
+		}
+
+		# Citrix MCS on system drive in shared image mode
+		if (($LIC_BISF_CLI_SD_runMCS -eq 1) -and ($DiskModeBase -eq 'VDAShared') -and ($MCSIO -eq $false)) {
+			Write-BISFLog -Msg "Running SDelete on MCS system drive $env:SystemDrive" -ShowConsole -Color DarkCyan -SubMsg
+			Start-BISFProcWithProgBar -ProcPath $SDeletePath -Args "-accepteula -z $($env:SystemDrive)" -ActText "SDelete is zeroing free space on drive $env:SystemDrive"
 		}
 	}
 
 	function Start-WindowsUpdateService {
-		Write-BISFLog -Msg "Activating Windows Update Service" -ShowConsole -Color DarkCyan -SubMsg
+		[CmdletBinding()]
+		param()
+
+		Write-BISFLog -Msg "Starting Windows Update service" -ShowConsole -Color DarkCyan -SubMsg
 		Invoke-BISFService -ServiceName wuauserv -Action Start -StartType Automatic
 	}
 
-	function Invoke-sihTask {
-
+	function Set-SihScheduledTask {
+		[CmdletBinding()]
 		param (
-			[parameter(Mandatory = $true)][string]$Mode
+			[Parameter(Mandatory = $true)]
+			[ValidateSet('Enable', 'Disable')]
+			[string]$Mode
 		)
 
-		$TaskName = "sih"
+		$TaskName = 'sih'
 		$Task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-		IF ($Task) {
-			Write-BISFLog -Msg "Scheduled Task $TaskName already exists" -ShowConsole -Color Cyan
-			$TaskPathName = Get-ScheduledTask -TaskName $Task | ForEach-Object { $_.TaskPath }
-			Switch ($Mode) {
+		if ($Task) {
+			Write-BISFLog -Msg "Scheduled task $TaskName exists" -ShowConsole -Color Cyan
+			$TaskPathName = $Task.TaskPath
+			switch ($Mode) {
 				Disable {
-					Write-BISFLog -Msg "Disable Scheduled Task $TaskName" -ShowConsole -SubMsg -Color DarkCyan
-					Disable-ScheduledTask -TaskName $ScheduledTaskList -TaskPath $TaskPathName | Out-Null
+					Write-BISFLog -Msg "Disabling scheduled task $TaskName" -ShowConsole -SubMsg -Color DarkCyan
+					Disable-ScheduledTask -TaskName $TaskName -TaskPath $TaskPathName | Out-Null
 				}
 				Enable {
-					Write-BISFLog -Msg "Enable Scheduled Task $TaskName" -ShowConsole -SubMsg -Color DarkCyan
-					Enable-ScheduledTask -TaskName $ScheduledTaskList -TaskPath $TaskPathName | Out-Null
-				}
-
-				Default {
-					Write-BISFLog -Msg "Default Action selected, doing nothing" -ShowConsole -Color DarkCy
+					Write-BISFLog -Msg "Enabling scheduled task $TaskName" -ShowConsole -SubMsg -Color DarkCyan
+					Enable-ScheduledTask -TaskName $TaskName -TaskPath $TaskPathName | Out-Null
 				}
 			}
 		}
-		ELSE {
-			Write-BISFLog -Msg "Scheduled Task $TaskName does NOT exist" -ShowConsole -SubMsg -Color DarkCyan
+		else {
+			Write-BISFLog -Msg "Scheduled task $TaskName does not exist" -ShowConsole -SubMsg -Color DarkCyan
 		}
 	}
-
 	#endregion
 
 	Write-BISFLog -Msg "Running system startup actions if needed..." -ShowConsole -Color Cyan
 	$Global:DiskMode = Get-BISFDiskMode
-	Switch ($DiskMode) {
+	$IsAppLayering = $DiskMode -like '*AppLayering'
+	$DiskModeBase = $DiskMode -replace 'AndSkipImaging', '' -replace 'AppLayering$', ''
+
+	switch ($DiskModeBase) {
 		ReadWrite {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			Start-WindowsUpdateService
-			Invoke-sihTask -Mode Enable
+			Write-BISFLog -Msg "Running actions for $DiskMode disk mode" -ShowConsole -Color DarkCyan -SubMsg
+			if (-not $IsAppLayering -or $CTXAppLayerName -eq 'OS-Layer') {
+				Start-WindowsUpdateService
+				Set-SihScheduledTask -Mode Enable
+			}
 		}
 		ReadOnly {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			Invoke-sihTask -Mode Disable
+			Write-BISFLog -Msg "Running actions for $DiskMode disk mode" -ShowConsole -Color DarkCyan -SubMsg
+			Set-SihScheduledTask -Mode Disable
 			Start-SDelete
 		}
 		Unmanaged {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
+			Write-BISFLog -Msg "Running actions for $DiskMode disk mode" -ShowConsole -Color DarkCyan -SubMsg
+			if ($IsAppLayering -and $CTXAppLayerName -eq 'OS-Layer') {
+				Start-WindowsUpdateService
+				Set-SihScheduledTask -Mode Enable
+			}
 		}
 		VDAPrivate {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			Start-WindowsUpdateService
-			Invoke-sihTask -Mode Enable
+			Write-BISFLog -Msg "Running actions for $DiskMode disk mode" -ShowConsole -Color DarkCyan -SubMsg
+			if (-not $IsAppLayering -or $CTXAppLayerName -eq 'OS-Layer') {
+				Start-WindowsUpdateService
+				Set-SihScheduledTask -Mode Enable
+			}
 		}
 		VDAShared {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			Invoke-sihTask -Mode Disable
+			Write-BISFLog -Msg "Running actions for $DiskMode disk mode" -ShowConsole -Color DarkCyan -SubMsg
+			Set-SihScheduledTask -Mode Disable
 			Start-SDelete
 		}
-		ReadWriteAppLayering {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			IF ($CTXAppLayerName -eq "OS-Layer") {
-				Start-WindowsUpdateService
-				Invoke-sihTask -Mode Enable
-			}
+		Default {
+			Write-BISFLog -Msg "Default action selected; doing nothing" -ShowConsole -Color DarkCyan
 		}
-		ReadOnlyAppLayering {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			Invoke-sihTask -Mode Disable
-			Start-SDelete
-		}
-		UnmanagedAppLayering {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			IF ($CTXAppLayerName -eq "OS-Layer") {
-				Start-WindowsUpdateService
-				Invoke-sihTask -Mode Enable
-			}
-		}
-		VDAPrivateAppLayering {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			IF ($CTXAppLayerName -eq "OS-Layer") {
-				Start-WindowsUpdateService
-				Invoke-sihTask -Mode Enable
-			}
-		}
-		VDASharedAppLayering {
-			Write-BISFLog -Msg "Running Actions for $DiskMode DiskMode" -ShowConsole -Color DarkCyan -SubMsg
-			Invoke-sihTask -Mode Disable
-		}
-
-		Default { Write-BISFLog -Msg "Default Action selected, doing nothing" -ShowConsole -Color DarkCyan }
-
 	}
-
 }
 
 End {
