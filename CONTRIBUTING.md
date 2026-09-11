@@ -74,6 +74,13 @@ Rewrite any that are missing the BOM:
 .\tools\Test-BISFUtf8Bom.ps1 -Fix
 ```
 
+Fail if `BISF.psm1` still `LoadFrom`s MahApps splash DLLs that are not in the tree
+([issue #2](https://github.com/JonathanPitre/BIS-F/issues/2)):
+
+```powershell
+.\tools\Test-BISFSplashAssemblies.ps1
+```
+
 Workspace settings and `.editorconfig` set `charset = utf-8-bom` for `*.ps1` /
 `*.psm1` / `*.psd1`. Do not save those files as UTF-8 without BOM.
 
@@ -115,7 +122,7 @@ Use **PascalCase** for PowerShell variables and parameters (for example `$LogPat
 | Workflow | Purpose |
 | --- | --- |
 | `markdownlint.yml` | Lint Markdown on PRs; auto-fix on push to `master` / `main` / `develop` / `refactor/modernize` |
-| `validate-scripts.yml` | PSScriptAnalyzer (Error severity), variable PascalCase, and UTF-8 BOM check on PowerShell files (auto-fix BOM on push) |
+| `validate-scripts.yml` | PSScriptAnalyzer (Error severity), variable PascalCase, UTF-8 BOM (auto-fix on push), and splash-assembly LoadFrom guard |
 | `codeql-powershell.yml` | Experimental Microsoft PowerShell CodeQL; uploads SARIF when code scanning is enabled |
 | `dependabot.yml` + `dependabot-auto-merge.yml` | Daily GitHub Actions updates on the default branch; squash auto-merge when checks pass |
 | `update-tool-pins.yml` | Weekly bump of PSScriptAnalyzer / CodeQL PowerShell pins in `.github/tool-versions.env` |
@@ -143,7 +150,8 @@ For full automation on this fork:
 4. Do not rename public functions or ADMX-backed identifiers without a clear migration plan.
 5. Run `.\tools\Test-BISFVariableCasing.ps1 -ChangedOnly` before opening a PR that touches Framework scripts.
 6. Run `.\tools\Test-BISFUtf8Bom.ps1` (or `-Fix`) so PowerShell files keep UTF-8 with BOM.
-7. Check whitespace before committing: `git diff --check`.
+7. Run `.\tools\Test-BISFSplashAssemblies.ps1` if you touch `BISF.psm1` or splash assemblies.
+8. Check whitespace before committing: `git diff --check`.
 
 ### Custom scripts
 

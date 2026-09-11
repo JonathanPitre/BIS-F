@@ -119,3 +119,15 @@ jobs:
         with:
           commit_message: "fix: ensure PowerShell scripts use UTF-8 with BOM"
           file_pattern: "*.ps1 *.psm1 *.psd1"
+
+  splash-assemblies:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check splash DLLs are not LoadFrom-referenced without files
+        shell: pwsh
+        run: |
+          & ./tools/Test-BISFSplashAssemblies.ps1

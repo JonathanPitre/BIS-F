@@ -74,10 +74,11 @@ Run from the repo root on Windows. Install PSScriptAnalyzer once:
 | Casing ratchet (PR-style) | `.\tools\Test-BISFVariableCasing.ps1 -ChangedOnly` |
 | UTF-8 BOM | `.\tools\Test-BISFUtf8Bom.ps1` |
 | Add missing BOM | `.\tools\Test-BISFUtf8Bom.ps1 -Fix` |
+| Splash DLL LoadFrom vs files | `.\tools\Test-BISFSplashAssemblies.ps1` |
 | Markdown | `markdownlint-cli2 --fix "**/*.md"` |
 | Whitespace | `git diff --check` |
 
-CI: `validate-scripts.yml` (analyzer Error, casing, BOM), `markdownlint.yml`,
+CI: `validate-scripts.yml` (analyzer Error, casing, BOM, splash assemblies), `markdownlint.yml`,
 `codeql-powershell.yml`. Pins live in `.github/tool-versions.env`.
 
 ## PowerShell

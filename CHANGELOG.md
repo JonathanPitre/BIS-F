@@ -7,6 +7,24 @@ and this project uses a custom versioning scheme (`YYMM.minor`; prior releases u
 
 ## [Unreleased]
 
+### Added
+
+- `tools/Test-BISFSplashAssemblies.ps1` and a `splash-assemblies` job in
+  `validate-scripts.yml`: CI fails if `BISF.psm1` `LoadFrom`s
+  `MahApps.Metro.dll` / `System.Windows.Interactivity.dll` while
+  `Framework\SubCall\Global\assembly` does not contain those files
+  ([#2](https://github.com/JonathanPitre/BIS-F/issues/2))
+
+### Fixed
+
+- Startup FileNotFound for `assembly\MahApps.Metro.dll` and
+  `assembly\System.Windows.Interactivity.dll` after those files were deleted
+  ([#2](https://github.com/JonathanPitre/BIS-F/issues/2)). The 15 Aug 2026
+  DLL removal landed before the 24 Aug Fluent splash rewrite; current
+  `Show-BISFSplashScreen` does not load them. Reinstall with
+  `tools/Install-BISF.ps1` if an older `refactor/modernize` zip is still
+  installed
+
 ### Changed
 
 - Moved `CONTRIBUTING.md` from `.github/` to the repository root so contributor
