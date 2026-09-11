@@ -1,0 +1,69 @@
+{
+  "description": "BIS-F default cold-start template. Missing executables are skipped. Office paths target Microsoft 365 / Office 2019+ Click-to-Run x64.",
+  "processes": [
+    {
+      "name": "Microsoft Word",
+      "path": "%ProgramFiles%\\Microsoft Office\\root\\Office16",
+      "executable": "WINWORD.EXE",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    },
+    {
+      "name": "Microsoft Excel",
+      "path": "%ProgramFiles%\\Microsoft Office\\root\\Office16",
+      "executable": "EXCEL.EXE",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    },
+    {
+      "name": "Microsoft PowerPoint",
+      "path": "%ProgramFiles%\\Microsoft Office\\root\\Office16",
+      "executable": "POWERPNT.EXE",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    },
+    {
+      "name": "Microsoft Outlook",
+      "path": "%ProgramFiles%\\Microsoft Office\\root\\Office16",
+      "executable": "OUTLOOK.EXE",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    },
+    {
+      "name": "Microsoft Outlook (new)",
+      "path": "%ProgramFiles%\\WindowsApps\\Microsoft.OutlookForWindows_*",
+      "executable": "olk.exe",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    },
+    {
+      "name": "Microsoft Edge",
+      "path": "%ProgramFiles(x86)%\\Microsoft\\Edge\\Application",
+      "executable": "msedge.exe",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    },
+    {
+      "name": "Microsoft OneDrive (machine)",
+      "path": "%ProgramFiles%\\Microsoft OneDrive",
+      "executable": "OneDrive.exe",
+      "read": false,
+      "commandLineContains": "",
+      "extraProcessesToTerminate": [],
+      "terminateAfterInSeconds": 9
+    }
+  ],
+  "folders": []
+}
