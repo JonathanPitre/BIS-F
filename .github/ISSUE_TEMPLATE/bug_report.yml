@@ -45,22 +45,10 @@ body:
     attributes:
       label: Desktop, please complete the following information.
       placeholder: |
-       OS: [e.g. iOS]
-       Browser: [e.g. chrome, safari]
-       Version: [e.g. 22]
+       OS: [e.g. Windows 11]
+       Version: [e.g. 25H2]
     validations:
       required: false
-  - type: textarea
-    id: smartphone
-    attributes:
-      label: Smartphone, please complete the following information.
-      placeholder: |
-       Device: [e.g. iPhone6]
-       OS: [e.g. iOS8.1]
-       Browser: [e.g. stock browser, safari]
-       Version: [e.g. 22]
-    validations:
-      required: false      
   - type: textarea
     id: context
     attributes:
